@@ -157,6 +157,8 @@ EnrollRouteTableEntry(char *optstr)
 			break;
 		}
 #endif
+	} else if (current_iomodule_func == &netmap_module_func) {
+		ifidx = 0;
 	}
 
 	ridx = CONFIG.routes++;
