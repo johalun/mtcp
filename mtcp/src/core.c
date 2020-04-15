@@ -1226,6 +1226,8 @@ MTCPRunThread(void *arg)
         TRACE_ERROR("Failed to create thread for CCP receive loop on cpu %d\n", cpu);
         return NULL;
     }
+    pthread_setname_np(ccp_run_thread, "mtcp-ccp-run");
+    pthread_setname_np(ccp_recv_thread[cpu], "mtcp-ccp-recv");
 #endif
 
 	// attach (nic device, queue)
@@ -1321,6 +1323,7 @@ mtcp_create_context(int cpu)
 		free(mctx);
 		return NULL;
 	}
+	pthread_setname_np(log_thread[cpu], "mtcp-log");
 #endif
 #ifndef DISABLE_DPDK
 	/* Wake up mTCP threads (wake up I/O threads) */
@@ -1337,6 +1340,7 @@ mtcp_create_context(int cpu)
 				TRACE_ERROR("pthread_create of mtcp thread failed!\n");
 				return NULL;
 			}
+			pthread_setname_np(g_thread[cpu], "mtcp-run");
 		} else
 			rte_eal_remote_launch(MTCPDPDKRunThread, mctx, whichCoreID(cpu));
 	} else
@@ -1347,6 +1351,7 @@ mtcp_create_context(int cpu)
 				TRACE_ERROR("pthread_create of mtcp thread failed!\n");
 				return NULL;
 			}
+			pthread_setname_np(g_thread[cpu], "mtcp-run");
 		}
 
 	sem_wait(&g_init_sem[cpu]);
