@@ -43,23 +43,23 @@ RBGetCurnum(rb_manager_t rbm)
 	return rbm->cur_num;
 }
 /*-----------------------------------------------------------------------------*/
-void 
+void
 RBPrintInfo(struct tcp_ring_buffer* buff)
 {
 	printf("buff_data %p, buff_size %d, buff_mlen %d, "
-			"buff_clen %lu, buff_head %p (%d), buff_tail (%d)\n", 
-			buff->data, buff->size, buff->merged_len, buff->cum_len, 
+			"buff_clen %lu, buff_head %p (%d), buff_tail (%d)\n",
+			buff->data, buff->size, buff->merged_len, buff->cum_len,
 			buff->head, buff->head_offset, buff->tail_offset);
 }
 /*----------------------------------------------------------------------------*/
-void 
+void
 RBPrintStr(struct tcp_ring_buffer* buff)
 {
 	RBPrintInfo(buff);
 	printf("%s\n", buff->head);
 }
 /*----------------------------------------------------------------------------*/
-void 
+void
 RBPrintHex(struct tcp_ring_buffer* buff)
 {
 	int i;
@@ -89,7 +89,7 @@ RBManagerCreate(mtcp_manager_t mtcp, size_t chunk_size, uint32_t cnum)
 #if ! defined(DISABLE_DPDK) && ! defined(ENABLE_ONVM)
 	char pool_name[RTE_MEMPOOL_NAMESIZE];
 	sprintf(pool_name, "rbm_pool_%u", mtcp->ctx->cpu);
-	rbm->mp = (mem_pool_t)MPCreate(pool_name, chunk_size, (uint64_t)chunk_size * cnum);	
+	rbm->mp = (mem_pool_t)MPCreate(pool_name, chunk_size, (uint64_t)chunk_size * cnum);
 #else
 	rbm->mp = (mem_pool_t)MPCreate(chunk_size, (uint64_t)chunk_size * cnum);
 #endif
@@ -100,10 +100,10 @@ RBManagerCreate(mtcp_manager_t mtcp, size_t chunk_size, uint32_t cnum)
 	}
 #if ! defined(DISABLE_DPDK) && ! defined(ENABLE_ONVM)
 	sprintf(pool_name, "frag_mp_%u", mtcp->ctx->cpu);
-	rbm->frag_mp = (mem_pool_t)MPCreate(pool_name, sizeof(struct fragment_ctx), 
-					    sizeof(struct fragment_ctx) * cnum);	
+	rbm->frag_mp = (mem_pool_t)MPCreate(pool_name, sizeof(struct fragment_ctx),
+					    sizeof(struct fragment_ctx) * cnum);
 #else
-	rbm->frag_mp = (mem_pool_t)MPCreate(sizeof(struct fragment_ctx), 
+	rbm->frag_mp = (mem_pool_t)MPCreate(sizeof(struct fragment_ctx),
 					    sizeof(struct fragment_ctx) * cnum);
 #endif
 	if (!rbm->frag_mp) {
@@ -142,7 +142,7 @@ FreeFragmentContextSingle(rb_manager_t rbm, struct fragment_ctx* frag)
 {
 	if (frag->is_calloc)
 		free(frag);
-	else	
+	else
 		MPFreeChunk(rbm->frag_mp, frag);
 }
 /*----------------------------------------------------------------------------*/
@@ -152,7 +152,7 @@ FreeFragmentContext(rb_manager_t rbm, struct fragment_ctx* fctx)
 	struct fragment_ctx *remove;
 
 	assert(fctx);
-	if (fctx == NULL) 	
+	if (fctx == NULL)
 		return;
 
 	while (fctx) {
@@ -190,10 +190,10 @@ AllocateFragmentContext(rb_manager_t rbm)
 	return frag;
 }
 /*----------------------------------------------------------------------------*/
-struct tcp_ring_buffer* 
+struct tcp_ring_buffer*
 RBInit(rb_manager_t rbm, uint32_t init_seq)
 {
-	struct tcp_ring_buffer* buff = 
+	struct tcp_ring_buffer* buff =
 			(struct tcp_ring_buffer*)calloc(1, sizeof(struct tcp_ring_buffer));
 
 	if (buff == NULL){
@@ -214,7 +214,7 @@ RBInit(rb_manager_t rbm, uint32_t init_seq)
 	buff->head = buff->data;
 	buff->head_seq = init_seq;
 	buff->init_seq = init_seq;
-	
+
 	rbm->cur_num++;
 
 	return buff;
@@ -228,11 +228,11 @@ RBFree(rb_manager_t rbm, struct tcp_ring_buffer* buff)
 		FreeFragmentContext(rbm, buff->fctx);
 		buff->fctx = NULL;
 	}
-	
+
 	if (buff->data) {
 		MPFreeChunk(rbm->mp, buff->data);
 	}
-	
+
 	rbm->cur_num--;
 
 	free(buff);
@@ -244,7 +244,7 @@ static inline uint32_t
 GetMinSeq(uint32_t a, uint32_t b)
 {
 	if (a == b) return a;
-	if (a < b) 
+	if (a < b)
 		return ((b - a) <= MAXSEQ/2) ? a : b;
 	/* b < a */
 	return ((a - b) <= MAXSEQ/2) ? b : a;
@@ -254,7 +254,7 @@ static inline uint32_t
 GetMaxSeq(uint32_t a, uint32_t b)
 {
 	if (a == b) return a;
-	if (a < b) 
+	if (a < b)
 		return ((b - a) <= MAXSEQ/2) ? b : a;
 	/* b < a */
 	return ((a - b) <= MAXSEQ/2) ? a : b;
@@ -285,7 +285,7 @@ MergeFragments(struct fragment_ctx *a, struct fragment_ctx *b)
 }
 /*----------------------------------------------------------------------------*/
 int
-RBPut(rb_manager_t rbm, struct tcp_ring_buffer* buff, 
+RBPut(rb_manager_t rbm, struct tcp_ring_buffer* buff,
 	   void* data, uint32_t len, uint32_t cur_seq)
 {
 	int putx, end_off;
@@ -306,7 +306,7 @@ RBPut(rb_manager_t rbm, struct tcp_ring_buffer* buff,
 	if (buff->size < end_off) {
 		return -2;
 	}
-	
+
 	// if buffer is at tail, move the data to the first of head
 	if (buff->size <= (buff->head_offset + end_off)) {
 		memmove(buff->data, buff->head, buff->last_len);
@@ -321,7 +321,7 @@ RBPut(rb_manager_t rbm, struct tcp_ring_buffer* buff,
 	//copy data to buffer
 	memcpy(buff->head + putx, data, len);
 #endif
-	if (buff->tail_offset < buff->head_offset + end_off) 
+	if (buff->tail_offset < buff->head_offset + end_off)
 		buff->tail_offset = buff->head_offset + end_off;
 	buff->last_len = buff->tail_offset - buff->head_offset;
 
@@ -336,10 +336,10 @@ RBPut(rb_manager_t rbm, struct tcp_ring_buffer* buff,
 	new_ctx->next = NULL;
 
 	// traverse the fragment list, and merge the new fragment if possible
-	for (iter = buff->fctx, prev = NULL, pprev = NULL; 
+	for (iter = buff->fctx, prev = NULL, pprev = NULL;
 		iter != NULL;
 		pprev = prev, prev = iter, iter = iter->next) {
-		
+
 		if (CanMerge(new_ctx, iter)) {
 			/* merge the first fragment into the second fragment */
 			MergeFragments(new_ctx, iter);
@@ -351,17 +351,17 @@ RBPut(rb_manager_t rbm, struct tcp_ring_buffer* buff,
 				else
 					buff->fctx = iter;
 				prev = pprev;
-			}	
+			}
 			FreeFragmentContextSingle(rbm, new_ctx);
 			new_ctx = iter;
 			merged = 1;
-		} 
-		else if (merged || 
+		}
+		else if (merged ||
 				 GetMaxSeq(cur_seq + len, iter->seq) == iter->seq) {
 			/* merged at some point, but no more mergeable
 			   then stop it now */
 			break;
-		} 
+		}
 	}
 
 	if (!merged) {
@@ -384,7 +384,7 @@ RBPut(rb_manager_t rbm, struct tcp_ring_buffer* buff,
 		buff->cum_len += buff->fctx->len - buff->merged_len;
 		buff->merged_len = buff->fctx->len;
 	}
-	
+
 	return len;
 }
 /*----------------------------------------------------------------------------*/
@@ -393,10 +393,10 @@ RBRemove(rb_manager_t rbm, struct tcp_ring_buffer* buff, size_t len, int option)
 {
 	/* this function should be called only in application thread */
 
-	if (buff->merged_len < len) 
+	if (buff->merged_len < len)
 		len = buff->merged_len;
-	
-	if (len == 0) 
+
+	if (len == 0)
 		return 0;
 
 	buff->head_offset += len;
@@ -415,11 +415,11 @@ RBRemove(rb_manager_t rbm, struct tcp_ring_buffer* buff, size_t len, int option)
 		} else if (option == AT_MTCP) {
 			RBFragEnqueue(rbm->free_fragq_int, remove);
 		}
-	} 
+	}
 	else if (len < buff->fctx->len) {
 		buff->fctx->seq += len;
 		buff->fctx->len -= len;
-	} 
+	}
 	else {
 		assert(0);
 	}

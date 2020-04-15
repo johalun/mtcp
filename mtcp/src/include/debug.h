@@ -57,7 +57,7 @@
 
 #endif /* DBGMSG */
 
-#ifdef INFO                       
+#ifdef INFO
 
 #define TRACE_INFO(f, m...) {                                         \
 	fprintf(stderr, "[%10s:%4d] " f,__FUNCTION__, __LINE__, ##m);    \
@@ -225,7 +225,7 @@
 
 #endif /* DBGFUNC */
 
-void 
+void
 DumpPacket(mtcp_manager_t mtcp, char *buf, int len, char *step, int ifindex);
 
 void

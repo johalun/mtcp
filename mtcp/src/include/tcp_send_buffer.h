@@ -23,22 +23,22 @@ struct tcp_send_buffer
 	uint32_t init_seq;
 };
 /*----------------------------------------------------------------------------*/
-uint32_t 
+uint32_t
 SBGetCurnum(sb_manager_t sbm);
 /*----------------------------------------------------------------------------*/
-sb_manager_t 
+sb_manager_t
 SBManagerCreate(mtcp_manager_t mtcp, size_t chunk_size, uint32_t cnum);
 /*----------------------------------------------------------------------------*/
 struct tcp_send_buffer *
 SBInit(sb_manager_t sbm, uint32_t init_seq);
 /*----------------------------------------------------------------------------*/
-void 
+void
 SBFree(sb_manager_t sbm, struct tcp_send_buffer *buf);
 /*----------------------------------------------------------------------------*/
-size_t 
+size_t
 SBPut(sb_manager_t sbm, struct tcp_send_buffer *buf, const void *data, size_t len);
 /*----------------------------------------------------------------------------*/
-size_t 
+size_t
 SBRemove(sb_manager_t sbm, struct tcp_send_buffer *buf, size_t len);
 /*----------------------------------------------------------------------------*/
 

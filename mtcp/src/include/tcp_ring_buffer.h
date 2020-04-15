@@ -1,11 +1,11 @@
 
-/* 
+/*
  * 2010.12.10 Shinae Woo
  * Ring buffer structure for managing dynamically allocating ring buffer
- * 
+ *
  * put data to the tail
  * get/pop/remove data from the head
- * 
+ *
  * always garantee physically continuous ready in-memory data from data_offset to the data_offset+len
  * automatically increase total buffer size when buffer is full
  * for efficiently managing packet payload and chunking
@@ -21,7 +21,7 @@
 /*----------------------------------------------------------------------------*/
 enum rb_caller
 {
-	AT_APP, 
+	AT_APP,
 	AT_MTCP
 };
 /*----------------------------------------------------------------------------*/
@@ -48,7 +48,7 @@ struct tcp_ring_buffer
 	uint64_t cum_len;		/* cummulatively merged length */
 	int last_len;			/* currently saved data length */
 	int size;				/* total ring buffer size */
-	
+
 	/* TCP payload features */
 	uint32_t head_seq;
 	uint32_t init_seq;
@@ -68,10 +68,10 @@ void RBFree(rb_manager_t rbm, struct tcp_ring_buffer* buff);
 uint32_t RBIsDanger(rb_manager_t rbm);
 /*----------------------------------------------------------------------------*/
 /* data manupulation functions */
-int RBPut(rb_manager_t rbm, struct tcp_ring_buffer* buff, 
+int RBPut(rb_manager_t rbm, struct tcp_ring_buffer* buff,
 					void* data, uint32_t len , uint32_t seq);
 size_t RBGet(rb_manager_t rbm, struct tcp_ring_buffer* buff, size_t len);
-size_t RBRemove(rb_manager_t rbm, struct tcp_ring_buffer* buff, 
+size_t RBRemove(rb_manager_t rbm, struct tcp_ring_buffer* buff,
 					size_t len, int option);
 /*----------------------------------------------------------------------------*/
 

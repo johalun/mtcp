@@ -8,8 +8,8 @@
 
 #include "rss.h"
 
-/*-------------------------------------------------------------*/ 
-static void 
+/*-------------------------------------------------------------*/
+static void
 BuildKeyCache(uint32_t *cache, int cache_len)
 {
 #define NBBY 8 /* number of bits per byte */
@@ -23,9 +23,9 @@ BuildKeyCache(uint32_t *cache, int cache_len)
 		 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05
 	};
 
-	uint32_t result = (((uint32_t)key[0]) << 24) | 
-		(((uint32_t)key[1]) << 16) | 
-		(((uint32_t)key[2]) << 8)  | 
+	uint32_t result = (((uint32_t)key[0]) << 24) |
+		(((uint32_t)key[1]) << 16) |
+		(((uint32_t)key[2]) << 8)  |
 		((uint32_t)key[3]);
 
 	uint32_t idx = 32;
@@ -40,8 +40,8 @@ BuildKeyCache(uint32_t *cache, int cache_len)
 		result = ((result << 1) | bit);
 	}
 }
-/*-------------------------------------------------------------*/ 
-static uint32_t 
+/*-------------------------------------------------------------*/
+static uint32_t
 GetRSSHash(in_addr_t sip, in_addr_t dip, in_port_t sp, in_port_t dp)
 {
 #define MSB32 0x80000000
@@ -52,7 +52,7 @@ GetRSSHash(in_addr_t sip, in_addr_t dip, in_port_t sp, in_port_t dp)
 	int i;
 	static int first = 1;
 	static uint32_t key_cache[KEY_CACHE_LEN] = {0};
-	
+
 	if (first) {
 		BuildKeyCache(key_cache, KEY_CACHE_LEN);
 		first = 0;
@@ -80,7 +80,7 @@ GetRSSHash(in_addr_t sip, in_addr_t dip, in_port_t sp, in_port_t dp)
 	}
 	return res;
 }
-/*-------------------------------------------------------------------*/ 
+/*-------------------------------------------------------------------*/
 /* RSS redirection table is in the little endian byte order (intel)  */
 /*                                                                   */
 /* idx: 0 1 2 3 | 4 5 6 7 | 8 9 10 11 | 12 13 14 15 | 16 17 18 19 ...*/
@@ -95,7 +95,7 @@ GetRSSHash(in_addr_t sip, in_addr_t dip, in_port_t sp, in_port_t dp)
 #define RSS_BIT_MASK_I40E		0x000001FF
 
 int
-GetRSSCPUCore(in_addr_t sip, in_addr_t dip, 
+GetRSSCPUCore(in_addr_t sip, in_addr_t dip,
 	      in_port_t sp, in_port_t dp, int num_queues, uint8_t endian_check)
 {
 	uint32_t masked;
@@ -103,7 +103,7 @@ GetRSSCPUCore(in_addr_t sip, in_addr_t dip,
 	if (endian_check) {
 		/* i40e */
 		static const uint32_t off[] = {3, 1, -1, -3};
-		masked = GetRSSHash(sip, dip, sp, dp) & RSS_BIT_MASK_I40E; 
+		masked = GetRSSHash(sip, dip, sp, dp) & RSS_BIT_MASK_I40E;
 		masked += off[masked & 0x3];
 	} else {
 		/* ixgbe or mlx* */
@@ -112,4 +112,4 @@ GetRSSCPUCore(in_addr_t sip, in_addr_t dip,
 
 	return (masked % num_queues);
 }
-/*-------------------------------------------------------------------*/ 
+/*-------------------------------------------------------------------*/

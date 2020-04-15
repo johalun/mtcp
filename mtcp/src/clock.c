@@ -1,4 +1,4 @@
-#include "clock.h" 
+#include "clock.h"
 /*----------------------------------------------------------------------------*/
 uint64_t init_time_ns = 0;
 uint32_t last_print = 0;
@@ -37,8 +37,8 @@ log_cwnd_rtt(void *vs) {
 	tcp_stream *stream = (tcp_stream *)vs;
 	unsigned long now = (unsigned long)(now_usecs());
 	if (time_since_usecs(last_print) > SAMPLE_FREQ_US) {
-		fprintf(stderr, "%lu %d %d/%d\n", 
-			now / 1000, 
+		fprintf(stderr, "%lu %d %d/%d\n",
+			now / 1000,
 			stream->rcvvar->srtt * 125,
 			stream->sndvar->cwnd / stream->sndvar->mss,
 			stream->sndvar->peer_wnd / stream->sndvar->mss

@@ -47,7 +47,7 @@ struct tcp_recv_vars
 	/* variables for fast retransmission */
 	uint8_t dup_acks;		/* number of duplicated acks */
 	uint32_t last_ack_seq;	/* highest ackd seq */
-	
+
 	/* timestamps */
 	uint32_t ts_recent;			/* recent peer timestamp */
 	uint32_t ts_lastack_rcvd;	/* last ack rcvd time */
@@ -131,9 +131,9 @@ struct tcp_send_vars
 	uint8_t on_closeq;
 	uint8_t on_resetq;
 
-	uint8_t on_closeq_int:1, 
-			on_resetq_int:1, 
-			is_fin_sent:1, 
+	uint8_t on_closeq_int:1,
+			on_resetq_int:1,
+			is_fin_sent:1,
 			is_fin_ackd:1;
 
 	TAILQ_ENTRY(tcp_stream) control_link;
@@ -164,14 +164,14 @@ typedef struct tcp_stream
 {
 	socket_map_t socket;
 
-	uint32_t id:24, 
+	uint32_t id:24,
 			 stream_type:8;
 
 	uint32_t saddr;			/* in network order */
 	uint32_t daddr;			/* in network order */
 	uint16_t sport;			/* in network order */
 	uint16_t dport;			/* in network order */
-	
+
 	uint8_t state;			/* tcp state */
 	uint8_t close_reason;	/* close reason */
 	uint8_t on_hash_table;
@@ -182,16 +182,16 @@ typedef struct tcp_stream
 	uint8_t need_wnd_adv;
 	int16_t on_rto_idx;
 
-	uint16_t on_timeout_list:1, 
-			on_rcv_br_list:1, 
-			on_snd_br_list:1, 
+	uint16_t on_timeout_list:1,
+			on_rcv_br_list:1,
+			on_snd_br_list:1,
 			saw_timestamp:1,	/* whether peer sends timestamp */
 			sack_permit:1,		/* whether peer permits SACK */
-			control_list_waiting:1, 
+			control_list_waiting:1,
 			have_reset:1,
 			is_external:1,		/* the peer node is locate outside of lan */
 			wait_for_acks:1;	/* if true, the sender should wait for acks to catch up before sending again */
-	
+
 	uint32_t snd_nxt;		/* send next */
 	uint32_t rcv_nxt;		/* receive next */
 #if USE_CCP
@@ -209,7 +209,7 @@ typedef struct tcp_stream
 #if USE_CCP
     struct ccp_connection *ccp_conn;
 #endif
-	
+
 	uint32_t last_active_ts;		/* ts_last_ack_sent or ts_last_ts_upd */
 
 } tcp_stream;
@@ -223,7 +223,7 @@ HashFlow(const void *flow);
 int
 EqualFlow(const void *flow1, const void *flow2);
 
-#if USE_CCP 
+#if USE_CCP
 /*----------------------------------------------------------------------------*/
 unsigned int
 HashSID(const void *flow);
@@ -233,30 +233,30 @@ EqualSID(const void *flow1, const void *flow2);
 /*----------------------------------------------------------------------------*/
 #endif
 
-extern inline int 
-AddEpollEvent(struct mtcp_epoll *ep, 
+extern inline int
+AddEpollEvent(struct mtcp_epoll *ep,
 		int queue_type, socket_map_t socket, uint32_t event);
 
-extern inline void 
+extern inline void
 RaiseReadEvent(mtcp_manager_t mtcp, tcp_stream *stream);
 
-extern inline void 
+extern inline void
 RaiseWriteEvent(mtcp_manager_t mtcp, tcp_stream *stream);
 
-extern inline void 
+extern inline void
 RaiseCloseEvent(mtcp_manager_t mtcp, tcp_stream *stream);
 
-extern inline void 
+extern inline void
 RaiseErrorEvent(mtcp_manager_t mtcp, tcp_stream *stream);
 
 tcp_stream *
-CreateTCPStream(mtcp_manager_t mtcp, socket_map_t socket, int type, 
+CreateTCPStream(mtcp_manager_t mtcp, socket_map_t socket, int type,
 		uint32_t saddr, uint16_t sport, uint32_t daddr, uint16_t dport);
 
 void
 DestroyTCPStream(mtcp_manager_t mtcp, tcp_stream *stream);
 
-void 
+void
 DumpStream(mtcp_manager_t mtcp, tcp_stream *stream);
 
 extern inline void

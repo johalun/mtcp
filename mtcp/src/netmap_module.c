@@ -41,7 +41,7 @@ struct netmap_private_context {
 	uint16_t rcv_pkt_len[MAX_PKT_BURST];
 	uint16_t snd_pkt_size[MAX_DEVICES];
 	uint8_t dev_poll_flag[MAX_DEVICES];
-	uint8_t idle_poll_count; 
+	uint8_t idle_poll_count;
 } __attribute__((aligned(__WORDSIZE)));
 /*----------------------------------------------------------------------------*/
 void
@@ -59,7 +59,7 @@ netmap_init_handle(struct mtcp_thread_context *ctxt)
 			    "Can't allocate memory\n");
 		exit(EXIT_FAILURE);
 	}
-	
+
 	npc = (struct netmap_private_context *)ctxt->io_private_context;
 
 	/* initialize per-thread netmap interfaces  */
@@ -70,12 +70,12 @@ netmap_init_handle(struct mtcp_thread_context *ctxt)
 				    ifname, devices_attached[j], strerror(errno));
 			exit(EXIT_FAILURE);
 		}
-		
+
 		if (unlikely(CONFIG.num_cores == 1))
 			sprintf(nifname, "netmap:%s", ifname);
 		else
 			sprintf(nifname, "netmap:%s-%d", ifname, ctxt->cpu);
-		
+
 		TRACE_INFO("Opening %s with j: %d (cpu: %d)\n", nifname, j, ctxt->cpu);
 
 		struct nmreq base_nmd;
@@ -95,16 +95,16 @@ int
 netmap_link_devices(struct mtcp_thread_context *ctxt)
 {
 	/* linking takes place during mtcp_init() */
-	
+
 	return 0;
 }
 /*----------------------------------------------------------------------------*/
 void
 netmap_release_pkt(struct mtcp_thread_context *ctxt, int ifidx, unsigned char *pkt_data, int len)
 {
-	/* 
+	/*
 	 * do nothing over here - memory reclamation
-	 * will take place in dpdk_recv_pkts 
+	 * will take place in dpdk_recv_pkts
 	 */
 }
 /*----------------------------------------------------------------------------*/
@@ -127,7 +127,7 @@ netmap_send_pkts(struct mtcp_thread_context *ctxt, int nif)
 	mtcp->nstat.tx_packets[nif]++;
 	mtcp->nstat.tx_bytes[nif] += pkt_size + ETHER_OVR;
 #endif
-	
+
  tx_again:
 	if (nm_inject(npc->local_nmd[idx], npc->snd_pktbuf[idx], pkt_size) == 0) {
 		TRACE_DBG("Failed to send pkt of size %d on interface: %d\n",
@@ -136,12 +136,12 @@ netmap_send_pkts(struct mtcp_thread_context *ctxt, int nif)
 		ioctl(npc->local_nmd[idx]->fd, NIOCTXSYNC, NULL);
 		goto tx_again;
 	}
-	
+
 #ifdef NETSTAT
 	//	mtcp->nstat.rx_errors[idx]++;
 #endif
 	npc->snd_pkt_size[idx] = 0;
-	
+
 	return 1;
 }
 /*----------------------------------------------------------------------------*/
@@ -156,7 +156,7 @@ netmap_get_wptr(struct mtcp_thread_context *ctxt, int nif, uint16_t pktsize)
 		netmap_send_pkts(ctxt, nif);
 
 	npc->snd_pkt_size[idx] = pktsize;
-	
+
 	return (uint8_t *)npc->snd_pktbuf[idx];
 }
 /*----------------------------------------------------------------------------*/
@@ -178,7 +178,7 @@ netmap_recv_pkts(struct mtcp_thread_context *ctxt, int ifidx)
 	for (c = 0; c < n && cnt != got && npc->dev_poll_flag[ifidx]; c++) {
 		/* compute current ring to use */
 		struct netmap_ring *ring;
-		
+
 		ri = d->cur_rx_ring + c;
 		if (ri > d->last_rx_ring)
 			ri = d->first_rx_ring;
@@ -214,9 +214,9 @@ netmap_select(struct mtcp_thread_context *ctxt)
 {
 	int i, rc;
 	struct pollfd pfd[MAX_DEVICES];
-	struct netmap_private_context *npc = 
+	struct netmap_private_context *npc =
 		(struct netmap_private_context *)ctxt->io_private_context;
-	
+
 	/* see if num_devices have been registered */
 	if (npc->local_nmd[0] == NULL)
 		return -1;
@@ -226,7 +226,7 @@ netmap_select(struct mtcp_thread_context *ctxt)
 		pfd[i].events = POLLIN;
 	}
 
-#ifndef CONST_POLLING	
+#ifndef CONST_POLLING
 	if (npc->idle_poll_count >= IDLE_POLL_COUNT) {
 		rc = poll(pfd, num_devices_attached, IDLE_POLL_WAIT);
 	} else

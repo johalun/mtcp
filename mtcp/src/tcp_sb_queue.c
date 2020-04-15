@@ -1,4 +1,4 @@
-/* 
+/*
  * TCP free send buffer queue - tcp_sb_queue.c/h
  *
  * EunYoung Jeong
@@ -39,25 +39,25 @@ struct sb_queue
 	struct tcp_send_buffer * volatile * _q;
 };
 /*----------------------------------------------------------------------------*/
-static inline index_type 
+static inline index_type
 NextIndex(sb_queue_t sq, index_type i)
 {
 	return (i != sq->_capacity ? i + 1: 0);
 }
 /*---------------------------------------------------------------------------*/
-static inline index_type 
+static inline index_type
 PrevIndex(sb_queue_t sq, index_type i)
 {
 	return (i != 0 ? i - 1: sq->_capacity);
 }
 /*---------------------------------------------------------------------------*/
-static inline void 
+static inline void
 SBMemoryBarrier(struct tcp_send_buffer * volatile buf, volatile index_type index)
 {
 	__asm__ volatile("" : : "m" (buf), "m" (index));
 }
 /*---------------------------------------------------------------------------*/
-sb_queue_t 
+sb_queue_t
 CreateSBQueue(int capacity)
 {
 	sb_queue_t sq;
@@ -79,7 +79,7 @@ CreateSBQueue(int capacity)
 	return sq;
 }
 /*---------------------------------------------------------------------------*/
-void 
+void
 DestroySBQueue(sb_queue_t sq)
 {
 	if (!sq)
@@ -93,7 +93,7 @@ DestroySBQueue(sb_queue_t sq)
 	free(sq);
 }
 /*---------------------------------------------------------------------------*/
-int 
+int
 SBEnqueue(sb_queue_t sq, struct tcp_send_buffer *buf)
 {
 	index_type h = sq->_head;

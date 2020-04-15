@@ -12,8 +12,8 @@
 #define ETH_P_IPV6_FRAG 0xF6DD
 
 /*----------------------------------------------------------------------------*/
-inline int 
-ProcessIPv4Packet(mtcp_manager_t mtcp, uint32_t cur_ts, 
+inline int
+ProcessIPv4Packet(mtcp_manager_t mtcp, uint32_t cur_ts,
 				  const int ifidx, unsigned char* pkt_data, int len)
 {
 	/* check and process IPv4 packets */
@@ -48,7 +48,7 @@ ProcessIPv4Packet(mtcp_manager_t mtcp, uint32_t cur_ts,
 		mtcp->iom->release_pkt(mtcp->ctx, ifidx, pkt_data, len);
 		return FALSE;
 	}
-	
+
 	switch (iph->protocol) {
 		case IPPROTO_TCP:
 			return ProcessTCPPacket(mtcp, cur_ts, ifidx, iph, ip_len);

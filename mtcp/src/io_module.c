@@ -177,7 +177,7 @@ SetNetEnv(char *dev_name_list, char *port_stat_list)
 
 	if (current_iomodule_func == &ps_module_func) {
 #ifndef DISABLE_PSIO
-		struct ifreq ifr;		
+		struct ifreq ifr;
 		/* calculate num_devices now! */
 		num_devices = ps_list_devices(devices);
 		if (num_devices == -1) {
@@ -263,7 +263,7 @@ SetNetEnv(char *dev_name_list, char *port_stat_list)
 #if RTE_VERSION < RTE_VERSION_NUM(19, 8, 0, 0)
 		static struct ether_addr ports_eth_addr[RTE_MAX_ETHPORTS];
 #else
-		static struct rte_ether_addr ports_eth_addr[RTE_MAX_ETHPORTS]; 
+		static struct rte_ether_addr ports_eth_addr[RTE_MAX_ETHPORTS];
 #endif
 
 		/* STEP 1: first determine CPU mask */
@@ -273,11 +273,11 @@ SetNetEnv(char *dev_name_list, char *port_stat_list)
 			/* get the cpu mask */
 			for (ret = 0; ret < cpu; ret++)
 				mpz_setbit(_cpumask, ret);
-			
+
 			gmp_sprintf(cpumaskbuf, "%ZX", _cpumask);
 		} else
 			gmp_sprintf(cpumaskbuf, "%ZX", CONFIG._cpumask);
-		
+
 		mpz_clear(_cpumask);
 
 		/* STEP 2: determine memory channels per socket */
@@ -291,7 +291,7 @@ SetNetEnv(char *dev_name_list, char *port_stat_list)
 
 		/* STEP 3: determine socket memory */
 		/* get socket memory threshold (in MB) */
-		socket_mem = 
+		socket_mem =
 			RTE_ALIGN_CEIL((unsigned long)ceil((CONFIG.num_cores *
 							    (CONFIG.rcvbuf_size +
 							     CONFIG.sndbuf_size +
@@ -301,7 +301,7 @@ SetNetEnv(char *dev_name_list, char *port_stat_list)
 							     sizeof(struct fragment_ctx)) *
 							    CONFIG.max_concurrency)/RTE_SOCKET_MEM_SHIFT),
 				       RTE_CACHE_LINE_SIZE);
-		
+
 		/* initialize the rte env, what a waste of implementation effort! */
 		int argc = 6;//8;
 		char *argv[RTE_ARGC_MAX] = {"",
@@ -442,11 +442,11 @@ SetNetEnv(char *dev_name_list, char *port_stat_list)
 #if 0
 		/*
 		 * XXX: It seems that there is a bug in the RTE SDK.
-		 * The dynamically allocated rte_argv params are left 
+		 * The dynamically allocated rte_argv params are left
 		 * as dangling pointers. Freeing them causes program
 		 * to crash.
 		 */
-		
+
 		/* free up all resources */
 		for (; rte_argc >= 9; rte_argc--) {
 			if (rte_argv[rte_argc] != NULL) {
@@ -460,7 +460,7 @@ SetNetEnv(char *dev_name_list, char *port_stat_list)
 		/* check if process is primary or secondary */
 		CONFIG.multi_process_is_master = (eal_proc_type_detect() == RTE_PROC_PRIMARY) ?
 			1 : 0;
-		
+
 #endif /* !DISABLE_DPDK */
 	} else if (current_iomodule_func == &netmap_module_func) {
 #ifndef DISABLE_NETMAP
@@ -556,14 +556,14 @@ SetNetEnv(char *dev_name_list, char *port_stat_list)
 		int ret;
 
 		mpz_init(cpumask);
-		
+
 		/* get the cpu mask */
 		for (ret = 0; ret < cpu; ret++)
 			mpz_setbit(cpumask, ret);
 		gmp_sprintf(cpumaskbuf, "%ZX", cpumask);
 
 		mpz_clear(cpumask);
-				
+
 		/* get the mem channels per socket */
 		if (CONFIG.num_mem_ch == 0) {
 			TRACE_ERROR("DPDK module requires # of memory channels "
@@ -575,10 +575,10 @@ SetNetEnv(char *dev_name_list, char *port_stat_list)
 		sprintf(instance, "%d", CONFIG.onvm_inst);
 
 		/* initialize the rte env first, what a waste of implementation effort!  */
-		char *argv[] = {"", 
-				"-c", 
+		char *argv[] = {"",
+				"-c",
 				cpumaskbuf,
-				"-n", 
+				"-n",
 				mem_channels,
 				"--proc-type=secondary",
 				"--",
@@ -587,10 +587,10 @@ SetNetEnv(char *dev_name_list, char *port_stat_list)
 				instance,
 				""
 		};
-		
-		const int argc = 10; 
 
-		/* 
+		const int argc = 10;
+
+		/*
 		 * re-set getopt extern variable optind.
 		 * this issue was a bitch to debug
 		 * rte_eal_init() internally uses getopt() syscall
@@ -616,7 +616,7 @@ SetNetEnv(char *dev_name_list, char *port_stat_list)
 		}
 
 		num_queues = MIN(CONFIG.num_cores, MAX_CPUS);
-		
+
 		struct ifaddrs *ifap;
 		struct ifaddrs *iter_if;
 		char *seek;
@@ -625,16 +625,16 @@ SetNetEnv(char *dev_name_list, char *port_stat_list)
 			perror("getifaddrs: ");
 			exit(EXIT_FAILURE);
 		}
-		
+
 		iter_if = ifap;
 		do {
 			if (iter_if->ifa_addr && iter_if->ifa_addr->sa_family == AF_INET &&
-			    !set_all_inf && 
+			    !set_all_inf &&
 			    (seek=strstr(dev_name_list, iter_if->ifa_name)) != NULL &&
 			    /* check if the interface was not aliased */
 			    *(seek + strlen(iter_if->ifa_name)) != ':') {
 				struct ifreq ifr;
-				
+
 				/* Setting informations */
 				eidx = CONFIG.eths_num++;
 				strcpy(CONFIG.eths[eidx].dev_name, iter_if->ifa_name);
@@ -644,8 +644,8 @@ SetNetEnv(char *dev_name_list, char *port_stat_list)
 				int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
 				if (sock == -1) {
 					perror("socket");
-				}			
-				
+				}
+
 				/* getting address */
 				if (ioctl(sock, SIOCGIFADDR, &ifr) == 0 ) {
 					struct in_addr sin = ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr;
@@ -662,13 +662,13 @@ SetNetEnv(char *dev_name_list, char *port_stat_list)
 					CONFIG.eths[eidx].netmask = *(uint32_t *)&sin;
 				}
 				close(sock);
-				
-				CONFIG.eths[eidx].ifindex = ports->id[eidx];		
+
+				CONFIG.eths[eidx].ifindex = ports->id[eidx];
 				devices_attached[num_devices_attached] = CONFIG.eths[eidx].ifindex;
 				num_devices_attached++;
 				fprintf(stderr, "Total number of attached devices: %d\n",
 					num_devices_attached);
-				fprintf(stderr, "Interface name: %s\n", 
+				fprintf(stderr, "Interface name: %s\n",
 					iter_if->ifa_name);
 			}
 			iter_if = iter_if->ifa_next;

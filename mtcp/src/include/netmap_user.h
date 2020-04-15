@@ -385,8 +385,8 @@ struct win_netmap_fd_list {
 	HANDLE win_netmap_handle;
 };
 
-/* 
- * list head containing all the netmap opened fd and their 
+/*
+ * list head containing all the netmap opened fd and their
  * windows HANDLE counterparts
  */
 static struct win_netmap_fd_list *win_netmap_fd_list_head;
@@ -447,7 +447,7 @@ win_get_netmap_handle(int fd)
 
 /*
  * use this function only from netmap_user.h internal functions
- * same as ioctl, returns 0 on success and -1 on error 
+ * same as ioctl, returns 0 on success and -1 on error
  */
 static int
 win_nm_ioctl_internal(HANDLE h, int32_t ctlCode, void *arg)
@@ -493,9 +493,9 @@ win_nm_ioctl_internal(HANDLE h, int32_t ctlCode, void *arg)
 	return ioctlReturnStatus ? 0 : -1;
 }
 
-/* 
+/*
  * this function is what must be called from user-space programs
- * same as ioctl, returns 0 on success and -1 on error 
+ * same as ioctl, returns 0 on success and -1 on error
  */
 static int
 win_nm_ioctl(int fd, int32_t ctlCode, void *arg)
@@ -535,7 +535,7 @@ win32_mmap_emulated(void *addr, size_t length, int prot, int flags, int fd, int3
 
 #include <sys/poll.h> /* XXX needed to use the structure pollfd */
 
-static int 
+static int
 win_nm_poll(struct pollfd *fds, int nfds, int timeout)
 {
 	HANDLE h;
@@ -558,7 +558,7 @@ win_nm_poll(struct pollfd *fds, int nfds, int timeout)
 
 #define poll win_nm_poll
 
-static int 
+static int
 win_nm_open(char* pathname, int flags){
 
 	if (strcmp(pathname, NETMAP_DEVICE_NAME) == 0){
@@ -578,7 +578,7 @@ win_nm_open(char* pathname, int flags){
 
 #define open win_nm_open
 
-static int 
+static int
 win_nm_close(int fd){
 	if (fd != -1){
 		close(fd);
@@ -868,7 +868,7 @@ nm_close(struct nm_desc *d)
 	if (d->fd != -1){
 		close(d->fd);
 	}
-		
+
 	bzero(d, sizeof(*d));
 	free(d);
 	return 0;

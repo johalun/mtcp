@@ -157,7 +157,7 @@ struct mtcp_config
 
 	/* route config */
 	struct route_table *rtable;		// routing table
-	struct route_table *gateway;	
+	struct route_table *gateway;
 	int routes;						// # of entries
 
 	/* arp config */
@@ -173,7 +173,7 @@ struct mtcp_config
 	int max_num_buffers;
 	int rcvbuf_size;
 	int sndbuf_size;
-	
+
 	int tcp_timewait;
 	int tcp_timeout;
 
@@ -237,7 +237,7 @@ struct mtcp_manager
 	uint32_t flow_cnt;		/* number of concurrent flows */
 
 	struct mtcp_thread_context* ctx;
-	
+
 	/* variables related to logger */
 	int sp_fd;
 	log_thread_context* logger;
@@ -258,7 +258,7 @@ struct mtcp_manager
 	stream_queue_int *closeq_int;		/* internally maintained closeq */
 	stream_queue_t resetq;				/* streams need to reset */
 	stream_queue_int *resetq_int;		/* internally maintained resetq */
-	
+
 	stream_queue_t destroyq;				/* streams need to be destroyed */
 
 	struct mtcp_sender *g_sender;
@@ -308,15 +308,15 @@ struct mtcp_manager
 /*----------------------------------------------------------------------------*/
 typedef struct mtcp_manager* mtcp_manager_t;
 /*----------------------------------------------------------------------------*/
-mtcp_manager_t 
+mtcp_manager_t
 GetMTCPManager(mctx_t mctx);
 /*----------------------------------------------------------------------------*/
 struct mtcp_thread_context
 {
 	int cpu;
 	pthread_t thread;
-	uint8_t done:1, 
-			exit:1, 
+	uint8_t done:1,
+			exit:1,
 			interrupt:1;
 
 	struct mtcp_manager* mtcp_manager;

@@ -23,7 +23,7 @@
 #define SELECTIVE_WRITE_EVENT_NOTIFY TRUE
 
 /*----------------------------------------------------------------------------*/
-static inline int 
+static inline int
 FilterSYNPacket(mtcp_manager_t mtcp, uint32_t ip, uint16_t port)
 {
 	struct sockaddr_in *addr;
@@ -59,13 +59,13 @@ FilterSYNPacket(mtcp_manager_t mtcp, uint32_t ip, uint16_t port)
 }
 /*----------------------------------------------------------------------------*/
 static inline tcp_stream *
-HandlePassiveOpen(mtcp_manager_t mtcp, uint32_t cur_ts, const struct iphdr *iph, 
+HandlePassiveOpen(mtcp_manager_t mtcp, uint32_t cur_ts, const struct iphdr *iph,
 		const struct tcphdr *tcph, uint32_t seq, uint16_t window)
 {
 	tcp_stream *cur_stream = NULL;
 
 	/* create new stream and add to flow hash table */
-	cur_stream = CreateTCPStream(mtcp, NULL, MTCP_SOCK_STREAM, 
+	cur_stream = CreateTCPStream(mtcp, NULL, MTCP_SOCK_STREAM,
 			iph->daddr, tcph->dest, iph->saddr, tcph->source);
 	if (!cur_stream) {
 		TRACE_ERROR("INFO: Could not allocate tcp_stream!\n");
@@ -75,14 +75,14 @@ HandlePassiveOpen(mtcp_manager_t mtcp, uint32_t cur_ts, const struct iphdr *iph,
 	cur_stream->sndvar->peer_wnd = window;
 	cur_stream->rcv_nxt = cur_stream->rcvvar->irs;
 	cur_stream->sndvar->cwnd = 1;
-	ParseTCPOptions(cur_stream, cur_ts, (uint8_t *)tcph + TCP_HEADER_LEN, 
+	ParseTCPOptions(cur_stream, cur_ts, (uint8_t *)tcph + TCP_HEADER_LEN,
 			(tcph->doff << 2) - TCP_HEADER_LEN);
 
 	return cur_stream;
 }
 /*----------------------------------------------------------------------------*/
 static inline int
-HandleActiveOpen(mtcp_manager_t mtcp, tcp_stream *cur_stream, uint32_t cur_ts, 
+HandleActiveOpen(mtcp_manager_t mtcp, tcp_stream *cur_stream, uint32_t cur_ts,
 		struct tcphdr *tcph, uint32_t seq, uint32_t ack_seq, uint16_t window)
 {
 	cur_stream->rcvvar->irs = seq;
@@ -91,9 +91,9 @@ HandleActiveOpen(mtcp_manager_t mtcp, tcp_stream *cur_stream, uint32_t cur_ts,
 	cur_stream->rcvvar->snd_wl1 = cur_stream->rcvvar->irs - 1;
 	cur_stream->rcv_nxt = cur_stream->rcvvar->irs + 1;
 	cur_stream->rcvvar->last_ack_seq = ack_seq;
-	ParseTCPOptions(cur_stream, cur_ts, (uint8_t *)tcph + TCP_HEADER_LEN, 
+	ParseTCPOptions(cur_stream, cur_ts, (uint8_t *)tcph + TCP_HEADER_LEN,
 			(tcph->doff << 2) - TCP_HEADER_LEN);
-	cur_stream->sndvar->cwnd = ((cur_stream->sndvar->cwnd == 1)? 
+	cur_stream->sndvar->cwnd = ((cur_stream->sndvar->cwnd == 1)?
 			(cur_stream->sndvar->mss * TCP_INIT_CWND): cur_stream->sndvar->mss);
 	cur_stream->sndvar->ssthresh = cur_stream->sndvar->mss * 10;
 	UpdateRetransmissionTimer(mtcp, cur_stream, cur_ts);
@@ -105,15 +105,15 @@ HandleActiveOpen(mtcp_manager_t mtcp, tcp_stream *cur_stream, uint32_t cur_ts,
 /* Return: TRUE if acceptable, FALSE if not acceptable                        */
 /*----------------------------------------------------------------------------*/
 static inline int
-ValidateSequence(mtcp_manager_t mtcp, tcp_stream *cur_stream, uint32_t cur_ts, 
+ValidateSequence(mtcp_manager_t mtcp, tcp_stream *cur_stream, uint32_t cur_ts,
 		struct tcphdr *tcph, uint32_t seq, uint32_t ack_seq, int payloadlen)
 {
 	/* Protect Against Wrapped Sequence number (PAWS) */
 	if (!tcph->rst && cur_stream->saw_timestamp) {
 		struct tcp_timestamp ts;
-		
-		if (!ParseTCPTimestamp(cur_stream, &ts, 
-				(uint8_t *)tcph + TCP_HEADER_LEN, 
+
+		if (!ParseTCPTimestamp(cur_stream, &ts,
+				(uint8_t *)tcph + TCP_HEADER_LEN,
 				(tcph->doff << 2) - TCP_HEADER_LEN)) {
 			/* if there is no timestamp */
 			/* TODO: implement here */
@@ -123,10 +123,10 @@ ValidateSequence(mtcp_manager_t mtcp, tcp_stream *cur_stream, uint32_t cur_ts,
 
 		/* RFC1323: if SEG.TSval < TS.Recent, drop and send ack */
 		if (TCP_SEQ_LT(ts.ts_val, cur_stream->rcvvar->ts_recent)) {
-			/* TODO: ts_recent should be invalidated 
+			/* TODO: ts_recent should be invalidated
 					 before timestamp wraparound for long idle flow */
 			TRACE_DBG("PAWS Detect wrong timestamp. "
-					"seq: %u, ts_val: %u, prev: %u\n", 
+					"seq: %u, ts_val: %u, prev: %u\n",
 					seq, ts.ts_val, cur_stream->rcvvar->ts_recent);
 			EnqueueACK(mtcp, cur_stream, cur_ts, ACK_OPT_NOW);
 			return FALSE;
@@ -134,8 +134,8 @@ ValidateSequence(mtcp_manager_t mtcp, tcp_stream *cur_stream, uint32_t cur_ts,
 			/* valid timestamp */
 			if (TCP_SEQ_GT(ts.ts_val, cur_stream->rcvvar->ts_recent)) {
 				TRACE_TSTAMP("Timestamp update. cur: %u, prior: %u "
-					"(time diff: %uus)\n", 
-					ts.ts_val, cur_stream->rcvvar->ts_recent, 
+					"(time diff: %uus)\n",
+					ts.ts_val, cur_stream->rcvvar->ts_recent,
 					TS_TO_USEC(cur_ts - cur_stream->rcvvar->ts_last_ts_upd));
 				cur_stream->rcvvar->ts_last_ts_upd = cur_ts;
 			}
@@ -146,7 +146,7 @@ ValidateSequence(mtcp_manager_t mtcp, tcp_stream *cur_stream, uint32_t cur_ts,
 	}
 
 	/* TCP sequence validation */
-	if (!TCP_SEQ_BETWEEN(seq + payloadlen, cur_stream->rcv_nxt, 
+	if (!TCP_SEQ_BETWEEN(seq + payloadlen, cur_stream->rcv_nxt,
 				cur_stream->rcv_nxt + cur_stream->rcvvar->rcv_wnd)) {
 
 		/* if RST bit is set, ignore the segment */
@@ -157,7 +157,7 @@ ValidateSequence(mtcp_manager_t mtcp, tcp_stream *cur_stream, uint32_t cur_ts,
 			/* check if it is to get window advertisement */
 			if (seq + 1 == cur_stream->rcv_nxt) {
 #if 0
-				TRACE_DBG("Window update request. (seq: %u, rcv_wnd: %u)\n", 
+				TRACE_DBG("Window update request. (seq: %u, rcv_wnd: %u)\n",
 						seq, cur_stream->rcvvar->rcv_wnd);
 #endif
 				EnqueueACK(mtcp, cur_stream, cur_ts, ACK_OPT_AGGREGATE);
@@ -172,7 +172,7 @@ ValidateSequence(mtcp_manager_t mtcp, tcp_stream *cur_stream, uint32_t cur_ts,
 			}
 		} else {
 			if (cur_stream->state == TCP_ST_TIME_WAIT) {
-				TRACE_DBG("Stream %d: tw expire update to %u\n", 
+				TRACE_DBG("Stream %d: tw expire update to %u\n",
 						cur_stream->id, cur_stream->rcvvar->ts_tw_expire);
 				AddtoTimewaitList(mtcp, cur_stream, cur_ts);
 			}
@@ -184,7 +184,7 @@ ValidateSequence(mtcp_manager_t mtcp, tcp_stream *cur_stream, uint32_t cur_ts,
 	return TRUE;
 }
 /*----------------------------------------------------------------------------*/
-static inline void 
+static inline void
 NotifyConnectionReset(mtcp_manager_t mtcp, tcp_stream *cur_stream)
 {
 	TRACE_DBG("Stream %d: Notifying connection reset.\n", cur_stream->id);
@@ -192,19 +192,19 @@ NotifyConnectionReset(mtcp_manager_t mtcp, tcp_stream *cur_stream)
 	/* signal to user "connection reset" */
 }
 /*----------------------------------------------------------------------------*/
-static inline int 
+static inline int
 ProcessRST(mtcp_manager_t mtcp, tcp_stream *cur_stream, uint32_t ack_seq)
 {
 	/* TODO: we need reset validation logic */
 	/* the sequence number of a RST should be inside window */
 	/* (in SYN_SENT state, it should ack the previous SYN */
 
-	TRACE_DBG("Stream %d: TCP RESET (%s)\n", 
+	TRACE_DBG("Stream %d: TCP RESET (%s)\n",
 			cur_stream->id, TCPStateToString(cur_stream));
 #if DUMP_STREAM
 	DumpStream(mtcp, cur_stream);
 #endif
-	
+
 	if (cur_stream->state <= TCP_ST_SYN_SENT) {
 		/* not handled here */
 		return FALSE;
@@ -219,12 +219,12 @@ ProcessRST(mtcp_manager_t mtcp, tcp_stream *cur_stream, uint32_t ack_seq)
 		return TRUE;
 	}
 
-	/* if the application is already closed the connection, 
+	/* if the application is already closed the connection,
 	   just destroy the it */
-	if (cur_stream->state == TCP_ST_FIN_WAIT_1 || 
-			cur_stream->state == TCP_ST_FIN_WAIT_2 || 
-			cur_stream->state == TCP_ST_LAST_ACK || 
-			cur_stream->state == TCP_ST_CLOSING || 
+	if (cur_stream->state == TCP_ST_FIN_WAIT_1 ||
+			cur_stream->state == TCP_ST_FIN_WAIT_2 ||
+			cur_stream->state == TCP_ST_LAST_ACK ||
+			cur_stream->state == TCP_ST_CLOSING ||
 			cur_stream->state == TCP_ST_TIME_WAIT) {
 		cur_stream->state = TCP_ST_CLOSED;
 		cur_stream->close_reason = TCP_ACTIVE_CLOSE;
@@ -232,14 +232,14 @@ ProcessRST(mtcp_manager_t mtcp, tcp_stream *cur_stream, uint32_t ack_seq)
 		return TRUE;
 	}
 
-	if (cur_stream->state >= TCP_ST_ESTABLISHED && 
+	if (cur_stream->state >= TCP_ST_ESTABLISHED &&
 			cur_stream->state <= TCP_ST_CLOSE_WAIT) {
 		/* ESTABLISHED, FIN_WAIT_1, FIN_WAIT_2, CLOSE_WAIT */
 		/* TODO: flush all the segment queues */
 		//NotifyConnectionReset(mtcp, cur_stream);
 	}
 
-	if (!(cur_stream->sndvar->on_closeq || cur_stream->sndvar->on_closeq_int || 
+	if (!(cur_stream->sndvar->on_closeq || cur_stream->sndvar->on_closeq_int ||
 				cur_stream->sndvar->on_resetq || cur_stream->sndvar->on_resetq_int)) {
 		//cur_stream->state = TCP_ST_CLOSED;
 		//DestroyTCPStream(mtcp, cur_stream);
@@ -251,7 +251,7 @@ ProcessRST(mtcp_manager_t mtcp, tcp_stream *cur_stream, uint32_t ack_seq)
 	return TRUE;
 }
 /*----------------------------------------------------------------------------*/
-inline void 
+inline void
 EstimateRTT(mtcp_manager_t mtcp, tcp_stream *cur_stream, uint32_t mrtt)
 {
 	/* This function should be called for not retransmitted packets */
@@ -300,15 +300,15 @@ EstimateRTT(mtcp_manager_t mtcp, tcp_stream *cur_stream, uint32_t mrtt)
 	}
 
 	TRACE_RTT("mrtt: %u (%uus), srtt: %u (%ums), mdev: %u, mdev_max: %u, "
-			"rttvar: %u, rtt_seq: %u\n", mrtt, mrtt * TIME_TICK, 
-			rcvvar->srtt, TS_TO_MSEC((rcvvar->srtt) >> 3), rcvvar->mdev, 
+			"rttvar: %u, rtt_seq: %u\n", mrtt, mrtt * TIME_TICK,
+			rcvvar->srtt, TS_TO_MSEC((rcvvar->srtt) >> 3), rcvvar->mdev,
 			rcvvar->mdev_max, rcvvar->rttvar, rcvvar->rtt_seq);
 }
 
 /*----------------------------------------------------------------------------*/
 static inline void
-ProcessACK(mtcp_manager_t mtcp, tcp_stream *cur_stream, uint32_t cur_ts, 
-		struct tcphdr *tcph, uint32_t seq, uint32_t ack_seq, 
+ProcessACK(mtcp_manager_t mtcp, tcp_stream *cur_stream, uint32_t cur_ts,
+		struct tcphdr *tcph, uint32_t seq, uint32_t ack_seq,
 		uint16_t window, int payloadlen)
 {
 	struct tcp_send_vars *sndvar = cur_stream->sndvar;
@@ -326,29 +326,29 @@ ProcessACK(mtcp_manager_t mtcp, tcp_stream *cur_stream, uint32_t cur_ts,
 	right_wnd_edge = sndvar->peer_wnd + cur_stream->rcvvar->snd_wl2;
 
 	/* If ack overs the sending buffer, return */
-	if (cur_stream->state == TCP_ST_FIN_WAIT_1 || 
+	if (cur_stream->state == TCP_ST_FIN_WAIT_1 ||
 			cur_stream->state == TCP_ST_FIN_WAIT_2 ||
-			cur_stream->state == TCP_ST_CLOSING || 
-			cur_stream->state == TCP_ST_CLOSE_WAIT || 
+			cur_stream->state == TCP_ST_CLOSING ||
+			cur_stream->state == TCP_ST_CLOSE_WAIT ||
 			cur_stream->state == TCP_ST_LAST_ACK) {
 		if (sndvar->is_fin_sent && ack_seq == sndvar->fss + 1) {
 			ack_seq--;
 		}
 	}
-	
+
 	if (TCP_SEQ_GT(ack_seq, sndvar->sndbuf->head_seq + sndvar->sndbuf->len)) {
 		TRACE_DBG("Stream %d (%s): invalid acknologement. "
-				"ack_seq: %u, possible max_ack_seq: %u\n", cur_stream->id, 
-				TCPStateToString(cur_stream), ack_seq, 
+				"ack_seq: %u, possible max_ack_seq: %u\n", cur_stream->id,
+				TCPStateToString(cur_stream), ack_seq,
 				sndvar->sndbuf->head_seq + sndvar->sndbuf->len);
 		return;
 	}
 
 	/* Update window */
 	if (TCP_SEQ_LT(cur_stream->rcvvar->snd_wl1, seq) ||
-			(cur_stream->rcvvar->snd_wl1 == seq && 
+			(cur_stream->rcvvar->snd_wl1 == seq &&
 			TCP_SEQ_LT(cur_stream->rcvvar->snd_wl2, ack_seq)) ||
-			(cur_stream->rcvvar->snd_wl2 == ack_seq && 
+			(cur_stream->rcvvar->snd_wl2 == ack_seq &&
 			cwindow > sndvar->peer_wnd)) {
 		cwindow_prev = sndvar->peer_wnd;
 		sndvar->peer_wnd = cwindow;
@@ -356,22 +356,22 @@ ProcessACK(mtcp_manager_t mtcp, tcp_stream *cur_stream, uint32_t cur_ts,
 		cur_stream->rcvvar->snd_wl2 = ack_seq;
 #if 0
 		TRACE_CLWND("Window update. "
-				"ack: %u, peer_wnd: %u, snd_nxt-snd_una: %u\n", 
+				"ack: %u, peer_wnd: %u, snd_nxt-snd_una: %u\n",
 				ack_seq, cwindow, cur_stream->snd_nxt - sndvar->snd_una);
 #endif
-		if (cwindow_prev < cur_stream->snd_nxt - sndvar->snd_una && 
+		if (cwindow_prev < cur_stream->snd_nxt - sndvar->snd_una &&
 				sndvar->peer_wnd >= cur_stream->snd_nxt - sndvar->snd_una) {
 			TRACE_CLWND("%u Broadcasting client window update! "
 					"ack_seq: %u, peer_wnd: %u (before: %u), "
-					"(snd_nxt - snd_una: %u)\n", 
-					cur_stream->id, ack_seq, sndvar->peer_wnd, cwindow_prev, 
+					"(snd_nxt - snd_una: %u)\n",
+					cur_stream->id, ack_seq, sndvar->peer_wnd, cwindow_prev,
 					cur_stream->snd_nxt - sndvar->snd_una);
 			RaiseWriteEvent(mtcp, cur_stream);
 		}
 	}
 
 	/* Check duplicated ack count */
-	/* Duplicated ack if 
+	/* Duplicated ack if
 	   1) ack_seq is old
 	   2) payload length is 0.
 	   3) advertised window not changed.
@@ -432,7 +432,7 @@ ProcessACK(mtcp_manager_t mtcp, tcp_stream *cur_stream, uint32_t cur_ts,
 #endif
 			if (ack_seq != sndvar->snd_una) {
 				TRACE_DBG("ack_seq and snd_una mismatch on tdp ack. "
-						"ack_seq: %u, snd_una: %u\n", 
+						"ack_seq: %u, snd_una: %u\n",
 						ack_seq, sndvar->snd_una);
 			}
 #if USE_CCP
@@ -467,13 +467,13 @@ ProcessACK(mtcp_manager_t mtcp, tcp_stream *cur_stream, uint32_t cur_ts,
 		/* Inflate congestion window until before overflow */
 		if ((uint32_t)(sndvar->cwnd + sndvar->mss) > sndvar->cwnd) {
 			sndvar->cwnd += sndvar->mss;
-			TRACE_CONG("Dupack cwnd inflate. cwnd: %u, ssthresh: %u\n", 
+			TRACE_CONG("Dupack cwnd inflate. cwnd: %u, ssthresh: %u\n",
 					sndvar->cwnd, sndvar->ssthresh);
 		}
 	}
 
 #if TCP_OPT_SACK_ENABLED
-	ParseSACKOption(cur_stream, ack_seq, (uint8_t *)tcph + TCP_HEADER_LEN, 
+	ParseSACKOption(cur_stream, ack_seq, (uint8_t *)tcph + TCP_HEADER_LEN,
 			(tcph->doff << 2) - TCP_HEADER_LEN);
 #endif /* TCP_OPT_SACK_ENABLED */
 
@@ -482,7 +482,7 @@ ProcessACK(mtcp_manager_t mtcp, tcp_stream *cur_stream, uint32_t cur_ts,
 	/* updating snd_nxt (when recovered from loss) */
 	if (TCP_SEQ_GT(ack_seq, cur_stream->snd_nxt) ||
 	    (cur_stream->wait_for_acks && TCP_SEQ_GT(ack_seq, cur_stream->seq_at_last_loss)
-#if TCP_OPT_SACK_ENABLED 
+#if TCP_OPT_SACK_ENABLED
 		&& cur_stream->rcvvar->sacked_pkts == 0
 #endif
 	))
@@ -534,10 +534,10 @@ ProcessACK(mtcp_manager_t mtcp, tcp_stream *cur_stream, uint32_t cur_ts,
 	/* Remove acked sequence from send buffer */
 	if (rmlen > 0) {
 		/* Routine goes here only if there is new payload (not retransmitted) */
-		
+
 		/* Estimate RTT and calculate rto */
 		if (cur_stream->saw_timestamp) {
-			EstimateRTT(mtcp, cur_stream, 
+			EstimateRTT(mtcp, cur_stream,
 					cur_ts - cur_stream->rcvvar->ts_lastack_rcvd);
 			sndvar->rto = (cur_stream->rcvvar->srtt >> 3) + cur_stream->rcvvar->rttvar;
 			assert(sndvar->rto > 0);
@@ -546,23 +546,23 @@ ProcessACK(mtcp_manager_t mtcp, tcp_stream *cur_stream, uint32_t cur_ts,
 			TRACE_RTT("NOT IMPLEMENTED.\n");
 		}
 
-		// TODO CCP should comment this out? 
+		// TODO CCP should comment this out?
 		/* Update congestion control variables */
 		if (cur_stream->state >= TCP_ST_ESTABLISHED) {
 			if (sndvar->cwnd < sndvar->ssthresh) {
 				if ((sndvar->cwnd + sndvar->mss) > sndvar->cwnd) {
 					sndvar->cwnd += (sndvar->mss * packets);
 				}
-				TRACE_CONG("slow start cwnd: %u, ssthresh: %u\n", 
+				TRACE_CONG("slow start cwnd: %u, ssthresh: %u\n",
 						sndvar->cwnd, sndvar->ssthresh);
 			} else {
-				uint32_t new_cwnd = sndvar->cwnd + 
-						packets * sndvar->mss * sndvar->mss / 
+				uint32_t new_cwnd = sndvar->cwnd +
+						packets * sndvar->mss * sndvar->mss /
 						sndvar->cwnd;
 				if (new_cwnd > sndvar->cwnd) {
 					sndvar->cwnd = new_cwnd;
 				}
-				//TRACE_CONG("congestion avoidance cwnd: %u, ssthresh: %u\n", 
+				//TRACE_CONG("congestion avoidance cwnd: %u, ssthresh: %u\n",
 				//		sndvar->cwnd, sndvar->ssthresh);
 			}
 		}
@@ -598,8 +598,8 @@ ProcessACK(mtcp_manager_t mtcp, tcp_stream *cur_stream, uint32_t cur_ts,
 /* Return: TRUE (1) in normal case, FALSE (0) if immediate ACK is required    */
 /* CAUTION: should only be called at ESTABLISHED, FIN_WAIT_1, FIN_WAIT_2      */
 /*----------------------------------------------------------------------------*/
-static inline int 
-ProcessTCPPayload(mtcp_manager_t mtcp, tcp_stream *cur_stream, 
+static inline int
+ProcessTCPPayload(mtcp_manager_t mtcp, tcp_stream *cur_stream,
 		uint32_t cur_ts, uint8_t *payload, uint32_t seq, int payloadlen)
 {
 	struct tcp_recv_vars *rcvvar = cur_stream->rcvvar;
@@ -619,7 +619,7 @@ ProcessTCPPayload(mtcp_manager_t mtcp, tcp_stream *cur_stream,
 	if (!rcvvar->rcvbuf) {
 		rcvvar->rcvbuf = RBInit(mtcp->rbm_rcv, rcvvar->irs + 1);
 		if (!rcvvar->rcvbuf) {
-			TRACE_ERROR("Stream %d: Failed to allocate receive buffer.\n", 
+			TRACE_ERROR("Stream %d: Failed to allocate receive buffer.\n",
 					cur_stream->id);
 			cur_stream->state = TCP_ST_CLOSED;
 			cur_stream->close_reason = TCP_NO_MEM;
@@ -636,17 +636,17 @@ ProcessTCPPayload(mtcp_manager_t mtcp, tcp_stream *cur_stream,
 	}
 
 	prev_rcv_nxt = cur_stream->rcv_nxt;
-	ret = RBPut(mtcp->rbm_rcv, 
+	ret = RBPut(mtcp->rbm_rcv,
 			rcvvar->rcvbuf, payload, (uint32_t)payloadlen, seq);
 	if (ret < 0) {
 		TRACE_ERROR("Cannot merge payload. reason: %d\n", ret);
 	}
 
-	/* discard the buffer if the state is FIN_WAIT_1 or FIN_WAIT_2, 
+	/* discard the buffer if the state is FIN_WAIT_1 or FIN_WAIT_2,
 	   meaning that the connection is already closed by the application */
-	if (cur_stream->state == TCP_ST_FIN_WAIT_1 || 
+	if (cur_stream->state == TCP_ST_FIN_WAIT_1 ||
 			cur_stream->state == TCP_ST_FIN_WAIT_2) {
-		RBRemove(mtcp->rbm_rcv, 
+		RBRemove(mtcp->rbm_rcv,
 				rcvvar->rcvbuf, rcvvar->rcvbuf->merged_len, AT_MTCP);
 	}
 	cur_stream->rcv_nxt = rcvvar->rcvbuf->head_seq + rcvvar->rcvbuf->merged_len;
@@ -660,10 +660,10 @@ ProcessTCPPayload(mtcp_manager_t mtcp, tcp_stream *cur_stream,
 	}
 
 	TRACE_EPOLL("Stream %d data arrived. "
-			"len: %d, ET: %u, IN: %u, OUT: %u\n", 
-			cur_stream->id, payloadlen, 
-			cur_stream->socket? cur_stream->socket->epoll & MTCP_EPOLLET : 0, 
-			cur_stream->socket? cur_stream->socket->epoll & MTCP_EPOLLIN : 0, 
+			"len: %d, ET: %u, IN: %u, OUT: %u\n",
+			cur_stream->id, payloadlen,
+			cur_stream->socket? cur_stream->socket->epoll & MTCP_EPOLLET : 0,
+			cur_stream->socket? cur_stream->socket->epoll & MTCP_EPOLLIN : 0,
 			cur_stream->socket? cur_stream->socket->epoll & MTCP_EPOLLOUT : 0);
 
 	if (cur_stream->state == TCP_ST_ESTABLISHED) {
@@ -674,13 +674,13 @@ ProcessTCPPayload(mtcp_manager_t mtcp, tcp_stream *cur_stream,
 }
 /*----------------------------------------------------------------------------*/
 static inline tcp_stream *
-CreateNewFlowHTEntry(mtcp_manager_t mtcp, uint32_t cur_ts, const struct iphdr *iph, 
+CreateNewFlowHTEntry(mtcp_manager_t mtcp, uint32_t cur_ts, const struct iphdr *iph,
 		int ip_len, const struct tcphdr* tcph, uint32_t seq, uint32_t ack_seq,
 		int payloadlen, uint16_t window)
 {
 	tcp_stream *cur_stream;
-	int ret; 
-	
+	int ret;
+
 	if (tcph->syn && !tcph->ack) {
 		/* handle the SYN */
 		ret = FilterSYNPacket(mtcp, iph->daddr, tcph->dest);
@@ -689,25 +689,25 @@ CreateNewFlowHTEntry(mtcp_manager_t mtcp, uint32_t cur_ts, const struct iphdr *i
 #ifdef DBGMSG
 			DumpIPPacket(mtcp, iph, ip_len);
 #endif
-			SendTCPPacketStandalone(mtcp, 
-					iph->daddr, tcph->dest, iph->saddr, tcph->source, 
-					0, seq + payloadlen + 1, 0, TCP_FLAG_RST | TCP_FLAG_ACK, 
+			SendTCPPacketStandalone(mtcp,
+					iph->daddr, tcph->dest, iph->saddr, tcph->source,
+					0, seq + payloadlen + 1, 0, TCP_FLAG_RST | TCP_FLAG_ACK,
 					NULL, 0, cur_ts, 0);
 
 			return NULL;
 		}
 
 		/* now accept the connection */
-		cur_stream = HandlePassiveOpen(mtcp, 
+		cur_stream = HandlePassiveOpen(mtcp,
 				cur_ts, iph, tcph, seq, window);
 		if (!cur_stream) {
 			TRACE_DBG("Not available space in flow pool.\n");
 #ifdef DBGMSG
 			DumpIPPacket(mtcp, iph, ip_len);
 #endif
-			SendTCPPacketStandalone(mtcp, 
-					iph->daddr, tcph->dest, iph->saddr, tcph->source, 
-					0, seq + payloadlen + 1, 0, TCP_FLAG_RST | TCP_FLAG_ACK, 
+			SendTCPPacketStandalone(mtcp,
+					iph->daddr, tcph->dest, iph->saddr, tcph->source,
+					0, seq + payloadlen + 1, 0, TCP_FLAG_RST | TCP_FLAG_ACK,
 					NULL, 0, cur_ts, 0);
 
 			return NULL;
@@ -727,29 +727,29 @@ CreateNewFlowHTEntry(mtcp_manager_t mtcp, uint32_t cur_ts, const struct iphdr *i
 		DumpIPPacket(mtcp, iph, ip_len);
 #endif
 		/* TODO: for else, discard and send a RST */
-		/* if the ACK bit is off, respond with seq 0: 
+		/* if the ACK bit is off, respond with seq 0:
 		   <SEQ=0><ACK=SEG.SEQ+SEG.LEN><CTL=RST,ACK>
 		   else (ACK bit is on):
 		   <SEQ=SEG.ACK><CTL=RST>
 		   */
 		if (tcph->ack) {
-			SendTCPPacketStandalone(mtcp, 
-					iph->daddr, tcph->dest, iph->saddr, tcph->source, 
+			SendTCPPacketStandalone(mtcp,
+					iph->daddr, tcph->dest, iph->saddr, tcph->source,
 					ack_seq, 0, 0, TCP_FLAG_RST, NULL, 0, cur_ts, 0);
 		} else {
-			SendTCPPacketStandalone(mtcp, 
-					iph->daddr, tcph->dest, iph->saddr, tcph->source, 
-					0, seq + payloadlen, 0, TCP_FLAG_RST | TCP_FLAG_ACK, 
+			SendTCPPacketStandalone(mtcp,
+					iph->daddr, tcph->dest, iph->saddr, tcph->source,
+					0, seq + payloadlen, 0, TCP_FLAG_RST | TCP_FLAG_ACK,
 					NULL, 0, cur_ts, 0);
 		}
 		return NULL;
 	}
 }
 /*----------------------------------------------------------------------------*/
-static inline void 
-Handle_TCP_ST_LISTEN (mtcp_manager_t mtcp, uint32_t cur_ts, 
+static inline void
+Handle_TCP_ST_LISTEN (mtcp_manager_t mtcp, uint32_t cur_ts,
 		tcp_stream* cur_stream, struct tcphdr* tcph) {
-	
+
 	if (tcph->syn) {
 		if (cur_stream->state == TCP_ST_LISTEN)
 			cur_stream->rcv_nxt++;
@@ -763,19 +763,19 @@ Handle_TCP_ST_LISTEN (mtcp_manager_t mtcp, uint32_t cur_ts,
 
 }
 /*----------------------------------------------------------------------------*/
-static inline void 
-Handle_TCP_ST_SYN_SENT (mtcp_manager_t mtcp, uint32_t cur_ts, 
+static inline void
+Handle_TCP_ST_SYN_SENT (mtcp_manager_t mtcp, uint32_t cur_ts,
 		tcp_stream* cur_stream, const struct iphdr* iph, struct tcphdr* tcph,
 		uint32_t seq, uint32_t ack_seq, int payloadlen, uint16_t window)
 {
 	/* when active open */
 	if (tcph->ack) {
 		/* filter the unacceptable acks */
-		if (TCP_SEQ_LEQ(ack_seq, cur_stream->sndvar->iss) || 
+		if (TCP_SEQ_LEQ(ack_seq, cur_stream->sndvar->iss) ||
 				TCP_SEQ_GT(ack_seq, cur_stream->snd_nxt)) {
 			if (!tcph->rst) {
-				SendTCPPacketStandalone(mtcp, 
-						iph->daddr, tcph->dest, iph->saddr, tcph->source, 
+				SendTCPPacketStandalone(mtcp,
+						iph->daddr, tcph->dest, iph->saddr, tcph->source,
 						ack_seq, 0, 0, TCP_FLAG_RST, NULL, 0, cur_ts, 0);
 			}
 			return;
@@ -783,7 +783,7 @@ Handle_TCP_ST_SYN_SENT (mtcp_manager_t mtcp, uint32_t cur_ts,
 		/* accept the ack */
 		cur_stream->sndvar->snd_una++;
 	}
-	
+
 	if (tcph->rst) {
 		if (tcph->ack) {
 			cur_stream->state = TCP_ST_CLOSE_WAIT;
@@ -799,12 +799,12 @@ Handle_TCP_ST_SYN_SENT (mtcp_manager_t mtcp, uint32_t cur_ts,
 
 	if (tcph->syn) {
 		if (tcph->ack) {
-			int ret = HandleActiveOpen(mtcp, 
+			int ret = HandleActiveOpen(mtcp,
 					cur_stream, cur_ts, tcph, seq, ack_seq, window);
 			if (!ret) {
 				return;
 			}
-			
+
 			cur_stream->sndvar->nrtx = 0;
 			cur_stream->rcv_nxt = cur_stream->rcvvar->irs + 1;
 			RemoveFromRTOList(mtcp, cur_stream);
@@ -815,9 +815,9 @@ Handle_TCP_ST_SYN_SENT (mtcp_manager_t mtcp, uint32_t cur_ts,
 				RaiseWriteEvent(mtcp, cur_stream);
 			} else {
 				TRACE_STATE("Stream %d: ESTABLISHED, but no socket\n", cur_stream->id);
-				SendTCPPacketStandalone(mtcp, 
-						iph->daddr, tcph->dest, iph->saddr, tcph->source, 
-						0, seq + payloadlen + 1, 0, TCP_FLAG_RST | TCP_FLAG_ACK, 
+				SendTCPPacketStandalone(mtcp,
+						iph->daddr, tcph->dest, iph->saddr, tcph->source,
+						0, seq + payloadlen + 1, 0, TCP_FLAG_RST | TCP_FLAG_ACK,
 						NULL, 0, cur_ts, 0);
 				cur_stream->close_reason = TCP_ACTIVE_CLOSE;
 				DestroyTCPStream(mtcp, cur_stream);
@@ -836,9 +836,9 @@ Handle_TCP_ST_SYN_SENT (mtcp_manager_t mtcp, uint32_t cur_ts,
 	}
 }
 /*----------------------------------------------------------------------------*/
-static inline void 
+static inline void
 Handle_TCP_ST_SYN_RCVD (mtcp_manager_t mtcp, uint32_t cur_ts,
-		tcp_stream* cur_stream, struct tcphdr* tcph, uint32_t ack_seq) 
+		tcp_stream* cur_stream, struct tcphdr* tcph, uint32_t ack_seq)
 {
 	struct tcp_send_vars *sndvar = cur_stream->sndvar;
 	int ret;
@@ -848,10 +848,10 @@ Handle_TCP_ST_SYN_RCVD (mtcp_manager_t mtcp, uint32_t cur_ts,
 		/* check if ACK of SYN */
 		if (ack_seq != sndvar->iss + 1) {
 			CTRACE_ERROR("Stream %d (TCP_ST_SYN_RCVD): "
-					"weird ack_seq: %u, iss: %u\n", 
+					"weird ack_seq: %u, iss: %u\n",
 					cur_stream->id, ack_seq, sndvar->iss);
 			TRACE_DBG("Stream %d (TCP_ST_SYN_RCVD): "
-					"weird ack_seq: %u, iss: %u\n", 
+					"weird ack_seq: %u, iss: %u\n",
 					cur_stream->id, ack_seq, sndvar->iss);
 			return;
 		}
@@ -859,10 +859,10 @@ Handle_TCP_ST_SYN_RCVD (mtcp_manager_t mtcp, uint32_t cur_ts,
 		sndvar->snd_una++;
 		cur_stream->snd_nxt = ack_seq;
 		prior_cwnd = sndvar->cwnd;
-		sndvar->cwnd = ((prior_cwnd == 1)? 
+		sndvar->cwnd = ((prior_cwnd == 1)?
 				(sndvar->mss * TCP_INIT_CWND): sndvar->mss);
 		TRACE_DBG("sync_recvd: updating cwnd from %u to %u\n", prior_cwnd, sndvar->cwnd);
-		
+
 		//UpdateRetransmissionTimer(mtcp, cur_stream, cur_ts);
 		sndvar->nrtx = 0;
 		cur_stream->rcv_nxt = cur_stream->rcvvar->irs + 1;
@@ -889,12 +889,12 @@ Handle_TCP_ST_SYN_RCVD (mtcp_manager_t mtcp, uint32_t cur_ts,
 
 		/* raise an event to the listening socket */
 		if (listener->socket && (listener->socket->epoll & MTCP_EPOLLIN)) {
-			AddEpollEvent(mtcp->ep, 
+			AddEpollEvent(mtcp->ep,
 					MTCP_EVENT_QUEUE, listener->socket, MTCP_EPOLLIN);
 		}
 
 	} else {
-		TRACE_DBG("Stream %d (TCP_ST_SYN_RCVD): No ACK.\n", 
+		TRACE_DBG("Stream %d (TCP_ST_SYN_RCVD): No ACK.\n",
 				cur_stream->id);
 		/* retransmit SYN/ACK */
 		cur_stream->snd_nxt = sndvar->iss;
@@ -902,15 +902,15 @@ Handle_TCP_ST_SYN_RCVD (mtcp_manager_t mtcp, uint32_t cur_ts,
 	}
 }
 /*----------------------------------------------------------------------------*/
-static inline void 
+static inline void
 Handle_TCP_ST_ESTABLISHED (mtcp_manager_t mtcp, uint32_t cur_ts,
 		tcp_stream* cur_stream, struct tcphdr* tcph, uint32_t seq, uint32_t ack_seq,
-		uint8_t *payload, int payloadlen, uint16_t window) 
+		uint8_t *payload, int payloadlen, uint16_t window)
 {
 	if (tcph->syn) {
 		TRACE_DBG("Stream %d (TCP_ST_ESTABLISHED): weird SYN. "
-				"seq: %u, expected: %u, ack_seq: %u, expected: %u\n", 
-				cur_stream->id, seq, cur_stream->rcv_nxt, 
+				"seq: %u, expected: %u, ack_seq: %u, expected: %u\n",
+				cur_stream->id, seq, cur_stream->rcv_nxt,
 				ack_seq, cur_stream->snd_nxt);
 		cur_stream->snd_nxt = ack_seq;
 		AddtoControlList(mtcp, cur_stream, cur_ts);
@@ -918,7 +918,7 @@ Handle_TCP_ST_ESTABLISHED (mtcp_manager_t mtcp, uint32_t cur_ts,
 	}
 
 	if (payloadlen > 0) {
-		if (ProcessTCPPayload(mtcp, cur_stream, 
+		if (ProcessTCPPayload(mtcp, cur_stream,
 				cur_ts, payload, seq, payloadlen)) {
 			/* if return is TRUE, send ACK */
 			EnqueueACK(mtcp, cur_stream, cur_ts, ACK_OPT_AGGREGATE);
@@ -926,10 +926,10 @@ Handle_TCP_ST_ESTABLISHED (mtcp_manager_t mtcp, uint32_t cur_ts,
 			EnqueueACK(mtcp, cur_stream, cur_ts, ACK_OPT_NOW);
 		}
 	}
-	
+
 	if (tcph->ack) {
 		if (cur_stream->sndvar->sndbuf) {
-			ProcessACK(mtcp, cur_stream, cur_ts, 
+			ProcessACK(mtcp, cur_stream, cur_ts,
 					tcph, seq, ack_seq, window, payloadlen);
 		}
 	}
@@ -952,41 +952,41 @@ Handle_TCP_ST_ESTABLISHED (mtcp_manager_t mtcp, uint32_t cur_ts,
 	}
 }
 /*----------------------------------------------------------------------------*/
-static inline void 
-Handle_TCP_ST_CLOSE_WAIT (mtcp_manager_t mtcp, uint32_t cur_ts, 
-		tcp_stream* cur_stream, struct tcphdr* tcph, uint32_t seq, uint32_t ack_seq, 
-		int payloadlen, uint16_t window) 
+static inline void
+Handle_TCP_ST_CLOSE_WAIT (mtcp_manager_t mtcp, uint32_t cur_ts,
+		tcp_stream* cur_stream, struct tcphdr* tcph, uint32_t seq, uint32_t ack_seq,
+		int payloadlen, uint16_t window)
 {
 	if (TCP_SEQ_LT(seq, cur_stream->rcv_nxt)) {
 		TRACE_DBG("Stream %d (TCP_ST_CLOSE_WAIT): "
-				"weird seq: %u, expected: %u\n", 
+				"weird seq: %u, expected: %u\n",
 				cur_stream->id, seq, cur_stream->rcv_nxt);
 		AddtoControlList(mtcp, cur_stream, cur_ts);
 		return;
 	}
 
 	if (cur_stream->sndvar->sndbuf) {
-		ProcessACK(mtcp, cur_stream, cur_ts, 
+		ProcessACK(mtcp, cur_stream, cur_ts,
 				tcph, seq, ack_seq, window, payloadlen);
 	}
 }
 /*----------------------------------------------------------------------------*/
-static inline void 
+static inline void
 Handle_TCP_ST_LAST_ACK (mtcp_manager_t mtcp, uint32_t cur_ts, const struct iphdr *iph,
-		int ip_len, tcp_stream* cur_stream, struct tcphdr* tcph, 
-		uint32_t seq, uint32_t ack_seq, int payloadlen, uint16_t window) 
+		int ip_len, tcp_stream* cur_stream, struct tcphdr* tcph,
+		uint32_t seq, uint32_t ack_seq, int payloadlen, uint16_t window)
 {
 
 	if (TCP_SEQ_LT(seq, cur_stream->rcv_nxt)) {
 		TRACE_DBG("Stream %d (TCP_ST_LAST_ACK): "
-				"weird seq: %u, expected: %u\n", 
+				"weird seq: %u, expected: %u\n",
 				cur_stream->id, seq, cur_stream->rcv_nxt);
 		return;
 	}
 
 	if (tcph->ack) {
 		if (cur_stream->sndvar->sndbuf) {
-			ProcessACK(mtcp, cur_stream, cur_ts, 
+			ProcessACK(mtcp, cur_stream, cur_ts,
 					tcph, seq, ack_seq, window, payloadlen);
 		}
 
@@ -1011,33 +1011,33 @@ Handle_TCP_ST_LAST_ACK (mtcp_manager_t mtcp, uint32_t cur_ts, const struct iphdr
 			UpdateRetransmissionTimer(mtcp, cur_stream, cur_ts);
 			cur_stream->state = TCP_ST_CLOSED;
 			cur_stream->close_reason = TCP_PASSIVE_CLOSE;
-			TRACE_STATE("Stream %d: TCP_ST_CLOSED\n", 
+			TRACE_STATE("Stream %d: TCP_ST_CLOSED\n",
 					cur_stream->id);
 			DestroyTCPStream(mtcp, cur_stream);
 		} else {
 			TRACE_DBG("Stream %d (TCP_ST_LAST_ACK): Not ACK of FIN. "
-					"ack_seq: %u, expected: %u\n", 
+					"ack_seq: %u, expected: %u\n",
 					cur_stream->id, ack_seq, cur_stream->sndvar->fss + 1);
 			//cur_stream->snd_nxt = cur_stream->sndvar->fss;
 			AddtoControlList(mtcp, cur_stream, cur_ts);
 		}
 	} else {
-		CTRACE_ERROR("Stream %d (TCP_ST_LAST_ACK): No ACK\n", 
+		CTRACE_ERROR("Stream %d (TCP_ST_LAST_ACK): No ACK\n",
 				cur_stream->id);
 		//cur_stream->snd_nxt = cur_stream->sndvar->fss;
 		AddtoControlList(mtcp, cur_stream, cur_ts);
 	}
 }
 /*----------------------------------------------------------------------------*/
-static inline void 
+static inline void
 Handle_TCP_ST_FIN_WAIT_1 (mtcp_manager_t mtcp, uint32_t cur_ts,
-		tcp_stream* cur_stream, struct tcphdr* tcph, uint32_t seq, uint32_t ack_seq, 
-		uint8_t *payload, int payloadlen, uint16_t window) 
+		tcp_stream* cur_stream, struct tcphdr* tcph, uint32_t seq, uint32_t ack_seq,
+		uint8_t *payload, int payloadlen, uint16_t window)
 {
 
 	if (TCP_SEQ_LT(seq, cur_stream->rcv_nxt)) {
 		TRACE_DBG("Stream %d (TCP_ST_LAST_ACK): "
-				"weird seq: %u, expected: %u\n", 
+				"weird seq: %u, expected: %u\n",
 				cur_stream->id, seq, cur_stream->rcv_nxt);
 		AddtoControlList(mtcp, cur_stream, cur_ts);
 		return;
@@ -1045,15 +1045,15 @@ Handle_TCP_ST_FIN_WAIT_1 (mtcp_manager_t mtcp, uint32_t cur_ts,
 
 	if (tcph->ack) {
 		if (cur_stream->sndvar->sndbuf) {
-			ProcessACK(mtcp, cur_stream, cur_ts, 
+			ProcessACK(mtcp, cur_stream, cur_ts,
 					tcph, seq, ack_seq, window, payloadlen);
 		}
 
-		if (cur_stream->sndvar->is_fin_sent && 
+		if (cur_stream->sndvar->is_fin_sent &&
 				ack_seq == cur_stream->sndvar->fss + 1) {
 			cur_stream->sndvar->snd_una = ack_seq;
 			if (TCP_SEQ_GT(ack_seq, cur_stream->snd_nxt)) {
-				TRACE_DBG("Stream %d: update snd_nxt to %u\n", 
+				TRACE_DBG("Stream %d: update snd_nxt to %u\n",
 						cur_stream->id, ack_seq);
 				cur_stream->snd_nxt = ack_seq;
 			}
@@ -1062,18 +1062,18 @@ Handle_TCP_ST_FIN_WAIT_1 (mtcp_manager_t mtcp, uint32_t cur_ts,
 			cur_stream->sndvar->nrtx = 0;
 			RemoveFromRTOList(mtcp, cur_stream);
 			cur_stream->state = TCP_ST_FIN_WAIT_2;
-			TRACE_STATE("Stream %d: TCP_ST_FIN_WAIT_2\n", 
+			TRACE_STATE("Stream %d: TCP_ST_FIN_WAIT_2\n",
 					cur_stream->id);
 		}
 
 	} else {
-		TRACE_DBG("Stream %d: does not contain an ack!\n", 
+		TRACE_DBG("Stream %d: does not contain an ack!\n",
 				cur_stream->id);
 		return;
 	}
 
 	if (payloadlen > 0) {
-		if (ProcessTCPPayload(mtcp, cur_stream, 
+		if (ProcessTCPPayload(mtcp, cur_stream,
 				cur_ts, payload, seq, payloadlen)) {
 			/* if return is TRUE, send ACK */
 			EnqueueACK(mtcp, cur_stream, cur_ts, ACK_OPT_AGGREGATE);
@@ -1102,24 +1102,24 @@ Handle_TCP_ST_FIN_WAIT_1 (mtcp_manager_t mtcp, uint32_t cur_ts,
 	}
 }
 /*----------------------------------------------------------------------------*/
-static inline void 
+static inline void
 Handle_TCP_ST_FIN_WAIT_2 (mtcp_manager_t mtcp, uint32_t cur_ts,
 		tcp_stream* cur_stream, struct tcphdr* tcph, uint32_t seq, uint32_t ack_seq,
 		uint8_t *payload, int payloadlen, uint16_t window)
 {
 	if (tcph->ack) {
 		if (cur_stream->sndvar->sndbuf) {
-			ProcessACK(mtcp, cur_stream, cur_ts, 
+			ProcessACK(mtcp, cur_stream, cur_ts,
 					tcph, seq, ack_seq, window, payloadlen);
 		}
 	} else {
-		TRACE_DBG("Stream %d: does not contain an ack!\n", 
+		TRACE_DBG("Stream %d: does not contain an ack!\n",
 				cur_stream->id);
 		return;
 	}
 
 	if (payloadlen > 0) {
-		if (ProcessTCPPayload(mtcp, cur_stream, 
+		if (ProcessTCPPayload(mtcp, cur_stream,
 				cur_ts, payload, seq, payloadlen)) {
 			/* if return is TRUE, send ACK */
 			EnqueueACK(mtcp, cur_stream, cur_ts, ACK_OPT_AGGREGATE);
@@ -1142,8 +1142,8 @@ Handle_TCP_ST_FIN_WAIT_2 (mtcp_manager_t mtcp, uint32_t cur_ts,
 #if 0
 	} else {
 		TRACE_DBG("Stream %d (TCP_ST_FIN_WAIT_2): No FIN. "
-				"seq: %u, ack_seq: %u, snd_nxt: %u, snd_una: %u\n", 
-				cur_stream->id, seq, ack_seq, 
+				"seq: %u, ack_seq: %u, snd_nxt: %u, snd_una: %u\n",
+				cur_stream->id, seq, ack_seq,
 				cur_stream->snd_nxt, cur_stream->sndvar->snd_una);
 #if DBGMSG
 		DumpIPPacket(mtcp, iph, ip_len);
@@ -1154,13 +1154,13 @@ Handle_TCP_ST_FIN_WAIT_2 (mtcp_manager_t mtcp, uint32_t cur_ts,
 }
 /*----------------------------------------------------------------------------*/
 static inline void
-Handle_TCP_ST_CLOSING (mtcp_manager_t mtcp, uint32_t cur_ts, 
+Handle_TCP_ST_CLOSING (mtcp_manager_t mtcp, uint32_t cur_ts,
 		tcp_stream* cur_stream, struct tcphdr* tcph, uint32_t seq, uint32_t ack_seq,
 		int payloadlen, uint16_t window) {
 
 	if (tcph->ack) {
 		if (cur_stream->sndvar->sndbuf) {
-			ProcessACK(mtcp, cur_stream, cur_ts, 
+			ProcessACK(mtcp, cur_stream, cur_ts,
 					tcph, seq, ack_seq, window, payloadlen);
 		}
 
@@ -1174,8 +1174,8 @@ Handle_TCP_ST_CLOSING (mtcp_manager_t mtcp, uint32_t cur_ts,
 		if (ack_seq != cur_stream->sndvar->fss + 1) {
 #if 0
 			CTRACE_ERROR("Stream %d (TCP_ST_CLOSING): Not ACK of FIN. "
-					"ack_seq: %u, snd_nxt: %u, snd_una: %u, fss: %u\n", 
-					cur_stream->id, ack_seq, cur_stream->snd_nxt, 
+					"ack_seq: %u, snd_nxt: %u, snd_una: %u, fss: %u\n",
+					cur_stream->id, ack_seq, cur_stream->snd_nxt,
 					cur_stream->sndvar->snd_una, cur_stream->sndvar->fss);
 			DumpIPPacketToFile(stderr, iph, ip_len);
 			DumpStream(mtcp, cur_stream);
@@ -1184,25 +1184,25 @@ Handle_TCP_ST_CLOSING (mtcp_manager_t mtcp, uint32_t cur_ts,
 			/* if the packet is not the ACK of FIN, ignore */
 			return;
 		}
-		
+
 		cur_stream->sndvar->snd_una = ack_seq;
 		cur_stream->snd_nxt = ack_seq;
 		UpdateRetransmissionTimer(mtcp, cur_stream, cur_ts);
 
 		cur_stream->state = TCP_ST_TIME_WAIT;
 		TRACE_STATE("Stream %d: TCP_ST_TIME_WAIT\n", cur_stream->id);
-		
+
 		AddtoTimewaitList(mtcp, cur_stream, cur_ts);
 
 	} else {
-		CTRACE_ERROR("Stream %d (TCP_ST_CLOSING): Not ACK\n", 
+		CTRACE_ERROR("Stream %d (TCP_ST_CLOSING): Not ACK\n",
 				cur_stream->id);
 		return;
 	}
 }
 /*----------------------------------------------------------------------------*/
 int
-ProcessTCPPacket(mtcp_manager_t mtcp, 
+ProcessTCPPacket(mtcp_manager_t mtcp,
 		 uint32_t cur_ts, const int ifidx, const struct iphdr *iph, int ip_len)
 {
 	struct tcphdr* tcph = (struct tcphdr *) ((u_char *)iph + (iph->ihl << 2));
@@ -1217,7 +1217,7 @@ ProcessTCPPacket(mtcp_manager_t mtcp,
 	int ret;
 	int rc = -1;
 
-	/* Check ip packet invalidation */	
+	/* Check ip packet invalidation */
 	if (ip_len < ((iph->ihl + tcph->doff) << 2))
 		return ERROR;
 
@@ -1228,11 +1228,11 @@ ProcessTCPPacket(mtcp_manager_t mtcp,
 					  PKT_RX_TCP_CSUM, NULL);
 #endif
 	if (rc == -1) {
-		check = TCPCalcChecksum((uint16_t *)tcph, 
+		check = TCPCalcChecksum((uint16_t *)tcph,
 					(tcph->doff << 2) + payloadlen, iph->saddr, iph->daddr);
 		if (check) {
-			TRACE_DBG("Checksum Error: Original: 0x%04x, calculated: 0x%04x\n", 
-				  tcph->check, TCPCalcChecksum((uint16_t *)tcph, 
+			TRACE_DBG("Checksum Error: Original: 0x%04x, calculated: 0x%04x\n",
+				  tcph->check, TCPCalcChecksum((uint16_t *)tcph,
 				  (tcph->doff << 2) + payloadlen, iph->saddr, iph->daddr));
 			tcph->check = 0;
 			return ERROR;
@@ -1251,7 +1251,7 @@ ProcessTCPPacket(mtcp_manager_t mtcp,
 
 	if (!(cur_stream = StreamHTSearch(mtcp->tcp_flow_table, &s_stream))) {
 		/* not found in flow table */
-		cur_stream = CreateNewFlowHTEntry(mtcp, cur_ts, iph, ip_len, tcph, 
+		cur_stream = CreateNewFlowHTEntry(mtcp, cur_ts, iph, ip_len, tcph,
 				seq, ack_seq, payloadlen, window);
 		if (!cur_stream)
 			return TRUE;
@@ -1259,7 +1259,7 @@ ProcessTCPPacket(mtcp_manager_t mtcp,
 
 	/* Validate sequence. if not valid, ignore the packet */
 	if (cur_stream->state > TCP_ST_SYN_RCVD) {
-		ret = ValidateSequence(mtcp, cur_stream, 
+		ret = ValidateSequence(mtcp, cur_stream,
 				cur_ts, tcph, seq, ack_seq, payloadlen);
 		if (!ret) {
 			TRACE_DBG("Stream %d: Unexpected sequence: %u, expected: %u\n",
@@ -1278,10 +1278,10 @@ ProcessTCPPacket(mtcp_manager_t mtcp,
 	if (tcph->syn) {
 		cur_stream->sndvar->peer_wnd = window;
 	} else {
-		cur_stream->sndvar->peer_wnd = 
+		cur_stream->sndvar->peer_wnd =
 				(uint32_t)window << cur_stream->sndvar->wscale_peer;
 	}
-				
+
 	cur_stream->last_active_ts = cur_ts;
 	UpdateTimeoutList(mtcp, cur_stream);
 
@@ -1301,7 +1301,7 @@ ProcessTCPPacket(mtcp_manager_t mtcp,
 		break;
 
 	case TCP_ST_SYN_SENT:
-		Handle_TCP_ST_SYN_SENT(mtcp, cur_ts, cur_stream, iph, tcph, 
+		Handle_TCP_ST_SYN_SENT(mtcp, cur_ts, cur_stream, iph, tcph,
 				seq, ack_seq, payloadlen, window);
 		break;
 
@@ -1320,7 +1320,7 @@ ProcessTCPPacket(mtcp_manager_t mtcp,
 		break;
 
 	case TCP_ST_ESTABLISHED:
-		Handle_TCP_ST_ESTABLISHED(mtcp, cur_ts, cur_stream, tcph, 
+		Handle_TCP_ST_ESTABLISHED(mtcp, cur_ts, cur_stream, tcph,
 				seq, ack_seq, payload, payloadlen, window);
 		break;
 
@@ -1330,17 +1330,17 @@ ProcessTCPPacket(mtcp_manager_t mtcp,
 		break;
 
 	case TCP_ST_LAST_ACK:
-		Handle_TCP_ST_LAST_ACK(mtcp, cur_ts, iph, ip_len, cur_stream, tcph, 
+		Handle_TCP_ST_LAST_ACK(mtcp, cur_ts, iph, ip_len, cur_stream, tcph,
 				seq, ack_seq, payloadlen, window);
 		break;
-	
+
 	case TCP_ST_FIN_WAIT_1:
 		Handle_TCP_ST_FIN_WAIT_1(mtcp, cur_ts, cur_stream, tcph, seq, ack_seq,
 				payload, payloadlen, window);
 		break;
 
 	case TCP_ST_FIN_WAIT_2:
-		Handle_TCP_ST_FIN_WAIT_2(mtcp, cur_ts, cur_stream, tcph, seq, ack_seq, 
+		Handle_TCP_ST_FIN_WAIT_2(mtcp, cur_ts, cur_stream, tcph, seq, ack_seq,
 				payload, payloadlen, window);
 		break;
 
@@ -1350,7 +1350,7 @@ ProcessTCPPacket(mtcp_manager_t mtcp,
 		break;
 
 	case TCP_ST_TIME_WAIT:
-		/* the only thing that can arrive in this state is a retransmission 
+		/* the only thing that can arrive in this state is a retransmission
 		   of the remote FIN. Acknowledge it, and restart the 2 MSL timeout */
 		if (cur_stream->on_timewait_list) {
 			RemoveFromTimewaitList(mtcp, cur_stream);

@@ -10,39 +10,39 @@ extern int num_devices;
 extern int num_devices_attached;
 extern int devices_attached[MAX_DEVICES];
 
-int 
+int
 LoadConfiguration(const char *fname);
 
-/* set configurations from the setted 
+/* set configurations from the setted
    interface information */
 int
 SetInterfaceInfo();
 
 /* set configurations from the files */
-int 
+int
 SetRoutingTable();
 
-int 
+int
 LoadARPTable();
 
 /* print setted configuration */
-void 
+void
 PrintConfiguration();
 
-void 
+void
 PrintInterfaceInfo();
 
-void 
+void
 PrintRoutingTable();
 
 /* fetch mask from prefix */
-uint32_t 
+uint32_t
 MaskFromPrefix(int prefix);
 
 void
 ParseMACAddress(unsigned char *haddr, char *haddr_str);
 
-int 
+int
 ParseIPAddress(uint32_t *ip_addr, char *ip_str);
 
 #endif /* CONFIG_H */

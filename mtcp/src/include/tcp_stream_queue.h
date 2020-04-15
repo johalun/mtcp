@@ -47,31 +47,31 @@ typedef struct stream_queue_int
 
 } stream_queue_int;
 /*---------------------------------------------------------------------------*/
-stream_queue_int * 
+stream_queue_int *
 CreateInternalStreamQueue(int size);
 /*---------------------------------------------------------------------------*/
-void 
+void
 DestroyInternalStreamQueue(stream_queue_int *sq);
 /*---------------------------------------------------------------------------*/
-int 
+int
 StreamInternalEnqueue(stream_queue_int *sq, struct tcp_stream *stream);
 /*---------------------------------------------------------------------------*/
 struct tcp_stream *
 StreamInternalDequeue(stream_queue_int *sq);
 /*---------------------------------------------------------------------------*/
-stream_queue_t 
+stream_queue_t
 CreateStreamQueue(int size);
 /*---------------------------------------------------------------------------*/
-void 
+void
 DestroyStreamQueue(stream_queue_t sq);
 /*---------------------------------------------------------------------------*/
-int 
+int
 StreamEnqueue(stream_queue_t sq, struct tcp_stream *stream);
 /*---------------------------------------------------------------------------*/
 struct tcp_stream *
 StreamDequeue(stream_queue_t sq);
 /*---------------------------------------------------------------------------*/
-int 
+int
 StreamQueueIsEmpty(stream_queue_t sq);
 /*---------------------------------------------------------------------------*/
 

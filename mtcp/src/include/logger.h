@@ -30,7 +30,7 @@ typedef struct log_thread_context {
 	int job_buff_cnt;
 
 	uint8_t state;
-	
+
 	pthread_mutex_t mutex;
 	pthread_mutex_t free_mutex;
 

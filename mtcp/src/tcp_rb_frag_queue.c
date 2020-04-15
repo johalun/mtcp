@@ -1,4 +1,4 @@
-/* 
+/*
  * TCP free fragment queue for ring buffer - tcp_rb_frag_queue.c/h
  *
  * EunYoung Jeong
@@ -39,25 +39,25 @@ struct rb_frag_queue
 	struct fragment_ctx * volatile * _q;
 };
 /*----------------------------------------------------------------------------*/
-static inline index_type 
+static inline index_type
 NextIndex(rb_frag_queue_t rb_fragq, index_type i)
 {
 	return (i != rb_fragq->_capacity ? i + 1: 0);
 }
 /*---------------------------------------------------------------------------*/
-static inline index_type 
+static inline index_type
 PrevIndex(rb_frag_queue_t rb_fragq, index_type i)
 {
 	return (i != 0 ? i - 1: rb_fragq->_capacity);
 }
 /*---------------------------------------------------------------------------*/
-static inline void 
+static inline void
 RBFragMemoryBarrier(struct fragment_ctx * volatile frag, volatile index_type index)
 {
 	__asm__ volatile("" : : "m" (frag), "m" (index));
 }
 /*---------------------------------------------------------------------------*/
-rb_frag_queue_t 
+rb_frag_queue_t
 CreateRBFragQueue(int capacity)
 {
 	rb_frag_queue_t rb_fragq;
@@ -79,7 +79,7 @@ CreateRBFragQueue(int capacity)
 	return rb_fragq;
 }
 /*---------------------------------------------------------------------------*/
-void 
+void
 DestroyRBFragQueue(rb_frag_queue_t rb_fragq)
 {
 	if (!rb_fragq)
@@ -93,7 +93,7 @@ DestroyRBFragQueue(rb_frag_queue_t rb_fragq)
 	free(rb_fragq);
 }
 /*---------------------------------------------------------------------------*/
-int 
+int
 RBFragEnqueue(rb_frag_queue_t rb_fragq, struct fragment_ctx *frag)
 {
 	index_type h = rb_fragq->_head;

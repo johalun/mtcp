@@ -3,7 +3,7 @@
 #include "debug.h"
 
 /*---------------------------------------------------------------------------*/
-socket_map_t 
+socket_map_t
 AllocateSocket(mctx_t mctx, int socktype, int need_lock)
 {
 	mtcp_manager_t mtcp = g_mtcp[mctx->cpu];
@@ -36,15 +36,15 @@ AllocateSocket(mctx_t mctx, int socktype, int need_lock)
 
 	if (need_lock)
 		pthread_mutex_unlock(&mtcp->ctx->smap_lock);
-	
+
 	socket->socktype = socktype;
 	socket->opts = 0;
 	socket->stream = NULL;
 	socket->epoll = 0;
 	socket->events = 0;
 
-	/* 
-	 * reset a few fields (needed for client socket) 
+	/*
+	 * reset a few fields (needed for client socket)
 	 * addr = INADDR_ANY, port = INPORT_ANY
 	 */
 	memset(&socket->saddr, 0, sizeof(struct sockaddr_in));
@@ -53,7 +53,7 @@ AllocateSocket(mctx_t mctx, int socktype, int need_lock)
 	return socket;
 }
 /*---------------------------------------------------------------------------*/
-void 
+void
 FreeSocket(mctx_t mctx, int sockid, int need_lock)
 {
 	mtcp_manager_t mtcp = g_mtcp[mctx->cpu];
@@ -62,7 +62,7 @@ FreeSocket(mctx_t mctx, int sockid, int need_lock)
 	if (socket->socktype == MTCP_SOCK_UNUSED) {
 		return;
 	}
-	
+
 	socket->socktype = MTCP_SOCK_UNUSED;
 	socket->epoll = MTCP_EPOLLNONE;
 	socket->events = 0;
@@ -78,7 +78,7 @@ FreeSocket(mctx_t mctx, int sockid, int need_lock)
 		pthread_mutex_unlock(&mtcp->ctx->smap_lock);
 }
 /*---------------------------------------------------------------------------*/
-socket_map_t 
+socket_map_t
 GetSocket(mctx_t mctx, int sockid)
 {
 	if (sockid < 0 || sockid >= CONFIG.max_concurrency) {

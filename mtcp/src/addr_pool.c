@@ -34,7 +34,7 @@ struct addr_pool
 	TAILQ_HEAD(, addr_entry) used_list;
 };
 /*----------------------------------------------------------------------------*/
-addr_pool_t 
+addr_pool_t
 CreateAddressPool(in_addr_t addr_base, int num_addr)
 {
 	struct addr_pool *ap;
@@ -85,7 +85,7 @@ CreateAddressPool(in_addr_t addr_base, int num_addr)
 			ap->pool[cnt].addr.sin_addr.s_addr = addr;
 			ap->pool[cnt].addr.sin_port = htons(j);
 			ap->mapper[i].addrmap[j] = &ap->pool[cnt];
-			
+
 			TAILQ_INSERT_TAIL(&ap->free_list, &ap->pool[cnt], addr_link);
 
 			if ((++cnt) >= num_entry)
@@ -95,14 +95,14 @@ CreateAddressPool(in_addr_t addr_base, int num_addr)
 	ap->num_entry = cnt;
 	ap->num_free = cnt;
 	ap->num_used = 0;
-	
+
 	pthread_mutex_unlock(&ap->lock);
 
 	return ap;
 }
 /*----------------------------------------------------------------------------*/
-addr_pool_t 
-CreateAddressPoolPerCore(int core, int num_queues, 
+addr_pool_t
+CreateAddressPoolPerCore(int core, int num_queues,
 		in_addr_t saddr_base, int num_addr, in_addr_t daddr, in_port_t dport)
 {
 	struct addr_pool *ap;
@@ -116,7 +116,7 @@ CreateAddressPoolPerCore(int core, int num_queues,
 	uint8_t endian_check = (current_iomodule_func == &dpdk_module_func) ?
 		0 : 1;
 #else
-	uint8_t endian_check = FetchEndianType();	
+	uint8_t endian_check = FetchEndianType();
 #endif
 
 	ap = (addr_pool_t)calloc(1, sizeof(struct addr_pool));
@@ -130,7 +130,7 @@ CreateAddressPoolPerCore(int core, int num_queues,
 		free(ap);
 		return NULL;
 	}
-	
+
 	/* initialize address map */
 	ap->mapper = (struct addr_map *)calloc(num_addr, sizeof(struct addr_map));
 	if (!ap->mapper) {
@@ -183,10 +183,10 @@ CreateAddressPoolPerCore(int core, int num_queues,
 	//fprintf(stderr, "CPU %d: Created %d address entries.\n", core, cnt);
 	if (ap->num_entry < CONFIG.max_concurrency) {
 		fprintf(stderr, "[WARINING] Available # addresses (%d) is smaller than"
-				" the max concurrency (%d).\n", 
+				" the max concurrency (%d).\n",
 				ap->num_entry, CONFIG.max_concurrency);
 	}
-	
+
 	pthread_mutex_unlock(&ap->lock);
 
 	return ap;
@@ -213,8 +213,8 @@ DestroyAddressPool(addr_pool_t ap)
 	free(ap);
 }
 /*----------------------------------------------------------------------------*/
-int 
-FetchAddress(addr_pool_t ap, int core, int num_queues, 
+int
+FetchAddress(addr_pool_t ap, int core, int num_queues,
 		const struct sockaddr_in *daddr, struct sockaddr_in *saddr)
 {
 	struct addr_entry *walk, *next;
@@ -224,7 +224,7 @@ FetchAddress(addr_pool_t ap, int core, int num_queues,
 	uint8_t endian_check = (current_iomodule_func == &dpdk_module_func) ?
 		0 : 1;
 #else
-	uint8_t endian_check = FetchEndianType();	
+	uint8_t endian_check = FetchEndianType();
 #endif
 
 	if (!ap || !daddr || !saddr)
@@ -248,8 +248,8 @@ FetchAddress(addr_pool_t ap, int core, int num_queues,
 			continue;
 		}
 
-		rss_core = GetRSSCPUCore(ntohl(walk->addr.sin_addr.s_addr), 
-					 ntohl(daddr->sin_addr.s_addr), ntohs(walk->addr.sin_port), 
+		rss_core = GetRSSCPUCore(ntohl(walk->addr.sin_addr.s_addr),
+					 ntohl(daddr->sin_addr.s_addr), ntohs(walk->addr.sin_port),
 					 ntohs(daddr->sin_port), num_queues, endian_check);
 
 		if (core == rss_core)
@@ -266,13 +266,13 @@ FetchAddress(addr_pool_t ap, int core, int num_queues,
 		ap->num_used++;
 		ret = 0;
 	}
-	
+
 	pthread_mutex_unlock(&ap->lock);
 
 	return ret;
 }
 /*----------------------------------------------------------------------------*/
-int 
+int
 FetchAddressPerCore(addr_pool_t ap, int core, int num_queues,
 		    const struct sockaddr_in *daddr, struct sockaddr_in *saddr)
 {
@@ -283,7 +283,7 @@ FetchAddressPerCore(addr_pool_t ap, int core, int num_queues,
 		return -1;
 
 	pthread_mutex_lock(&ap->lock);
-	
+
 	/* we don't need to calculate RSSCPUCore if mtcp_init_rss is called */
 	walk = TAILQ_FIRST(&ap->free_list);
 	if (walk) {
@@ -294,13 +294,13 @@ FetchAddressPerCore(addr_pool_t ap, int core, int num_queues,
 		ap->num_used++;
 		ret = 0;
 	}
-	
+
 	pthread_mutex_unlock(&ap->lock);
-	
+
 	return ret;
 }
 /*----------------------------------------------------------------------------*/
-int 
+int
 FreeAddress(addr_pool_t ap, const struct sockaddr_in *addr)
 {
 	struct addr_entry *walk, *next;
@@ -326,7 +326,7 @@ FreeAddress(addr_pool_t ap, const struct sockaddr_in *addr)
 		walk = TAILQ_FIRST(&ap->used_list);
 		while (walk) {
 			next = TAILQ_NEXT(walk, addr_link);
-			if (addr->sin_port == walk->addr.sin_port && 
+			if (addr->sin_port == walk->addr.sin_port &&
 					addr->sin_addr.s_addr == walk->addr.sin_addr.s_addr) {
 				break;
 			}

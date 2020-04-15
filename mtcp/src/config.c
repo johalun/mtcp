@@ -81,7 +81,7 @@ mystrtol(const char *nptr, int base)
 	return rval;
 }
 /*----------------------------------------------------------------------------*/
-static int 
+static int
 GetIntValue(char* value)
 {
 	int ret = 0;
@@ -91,7 +91,7 @@ GetIntValue(char* value)
 	return ret;
 }
 /*----------------------------------------------------------------------------*/
-inline uint32_t 
+inline uint32_t
 MaskFromPrefix(int prefix)
 {
 	uint32_t mask = 0;
@@ -112,14 +112,14 @@ EnrollRouteTableEntry(char *optstr)
 {
 	char *daddr_s;
 	char *prefix;
-#ifdef DISABLE_NETMAP 
+#ifdef DISABLE_NETMAP
 	char *dev;
 	int i;
 #endif
 	int ifidx;
 	int ridx;
 	char *saveptr;
- 
+
 	saveptr = NULL;
 	daddr_s = strtok_r(optstr, "/", &saveptr);
 	prefix = strtok_r(NULL, " ", &saveptr);
@@ -128,17 +128,17 @@ EnrollRouteTableEntry(char *optstr)
 #endif
 	assert(daddr_s != NULL);
 	assert(prefix != NULL);
-#ifdef DISABLE_NETMAP	
+#ifdef DISABLE_NETMAP
 	assert(dev != NULL);
 #endif
 
 	ifidx = -1;
 	if (current_iomodule_func == &ps_module_func) {
-#ifndef DISABLE_PSIO		
+#ifndef DISABLE_PSIO
 		for (i = 0; i < num_devices; i++) {
 			if (strcmp(dev, devices[i].name) != 0)
 				continue;
-			
+
 			ifidx = devices[i].ifindex;
 			break;
 		}
@@ -174,20 +174,20 @@ EnrollRouteTableEntry(char *optstr)
 		TRACE_CONFIG("Prefix length should be between 0 - 32.\n");
 		exit(4);
 	}
-	
+
 	CONFIG.rtable[ridx].mask = MaskFromPrefix(CONFIG.rtable[ridx].prefix);
-	CONFIG.rtable[ridx].masked = 
+	CONFIG.rtable[ridx].masked =
 			CONFIG.rtable[ridx].daddr & CONFIG.rtable[ridx].mask;
 	CONFIG.rtable[ridx].nif = ifidx;
 
 	if (CONFIG.rtable[ridx].mask == 0) {
 		TRACE_CONFIG("Default Route GW set!\n");
 		CONFIG.gateway = &CONFIG.rtable[ridx];
-	}	
+	}
 }
 /*----------------------------------------------------------------------------*/
-int 
-SetRoutingTableFromFile() 
+int
+SetRoutingTableFromFile()
 {
 #define ROUTES "ROUTES"
 
@@ -207,7 +207,7 @@ SetRoutingTableFromFile()
 	while (1) {
 		char *iscomment;
 		int num;
-  
+
 		if (fgets(optstr, MAX_OPTLINE_LEN, fc) == NULL)
 			break;
 
@@ -238,7 +238,7 @@ SetRoutingTableFromFile()
 						    "always come as last entry!\n",
 						    route_file);
 					exit(EXIT_FAILURE);
-				}	
+				}
 			}
 		}
 	}
@@ -262,9 +262,9 @@ PrintRoutingTable()
 		m = (uint8_t *)&CONFIG.rtable[i].mask;
 		md = (uint8_t *)&CONFIG.rtable[i].masked;
 		TRACE_CONFIG("Destination: %u.%u.%u.%u/%d, Mask: %u.%u.%u.%u, "
-				"Masked: %u.%u.%u.%u, Route: ifdx-%d\n", 
-				da[0], da[1], da[2], da[3], CONFIG.rtable[i].prefix, 
-				m[0], m[1], m[2], m[3], md[0], md[1], md[2], md[3], 
+				"Masked: %u.%u.%u.%u, Route: ifdx-%d\n",
+				da[0], da[1], da[2], da[3], CONFIG.rtable[i].prefix,
+				m[0], m[1], m[2], m[3], md[0], md[1], md[2], md[3],
 				CONFIG.rtable[i].nif);
 	}
 	if (CONFIG.routes == 0)
@@ -303,7 +303,7 @@ ParseMACAddress(unsigned char *haddr, char *haddr_str)
 	}
 }
 /*----------------------------------------------------------------------------*/
-int 
+int
 ParseIPAddress(uint32_t *ip_addr, char *ip_str)
 {
 	if (ip_str == NULL) {
@@ -317,12 +317,12 @@ ParseIPAddress(uint32_t *ip_addr, char *ip_str)
 		*ip_addr = 0;
 		return -1;
 	}
-	
+
 	return 0;
 }
 /*----------------------------------------------------------------------------*/
 int
-SetRoutingTable() 
+SetRoutingTable()
 {
 	int i, ridx;
 	unsigned int c;
@@ -330,22 +330,22 @@ SetRoutingTable()
 	CONFIG.routes = 0;
 	CONFIG.rtable = (struct route_table *)
 			calloc(MAX_ROUTE_ENTRY, sizeof(struct route_table));
-	if (!CONFIG.rtable) 
+	if (!CONFIG.rtable)
 		exit(EXIT_FAILURE);
 
 	/* set default routing table */
 	for (i = 0; i < CONFIG.eths_num; i ++) {
-		
+
 		ridx = CONFIG.routes++;
 		CONFIG.rtable[ridx].daddr = CONFIG.eths[i].ip_addr & CONFIG.eths[i].netmask;
-		
+
 		CONFIG.rtable[ridx].prefix = 0;
 		c = CONFIG.eths[i].netmask;
 		while ((c = (c >> 1))){
 			CONFIG.rtable[ridx].prefix++;
 		}
 		CONFIG.rtable[ridx].prefix++;
-		
+
 		CONFIG.rtable[ridx].mask = CONFIG.eths[i].netmask;
 		CONFIG.rtable[ridx].masked = CONFIG.rtable[ridx].daddr;
 		CONFIG.rtable[ridx].nif = CONFIG.eths[ridx].ifindex;
@@ -358,14 +358,14 @@ SetRoutingTable()
 }
 /*----------------------------------------------------------------------------*/
 void
-PrintInterfaceInfo() 
+PrintInterfaceInfo()
 {
 	int i;
-		
+
 	/* print out process start information */
 	TRACE_CONFIG("Interfaces:\n");
 	for (i = 0; i < CONFIG.eths_num; i++) {
-			
+
 		uint8_t *da = (uint8_t *)&CONFIG.eths[i].ip_addr;
 		uint8_t *nm = (uint8_t *)&CONFIG.eths[i].netmask;
 
@@ -373,8 +373,8 @@ PrintInterfaceInfo()
 				"hwaddr: %02X:%02X:%02X:%02X:%02X:%02X, "
 				"ipaddr: %u.%u.%u.%u, "
 				"netmask: %u.%u.%u.%u\n",
-				CONFIG.eths[i].dev_name, 
-				CONFIG.eths[i].ifindex, 
+				CONFIG.eths[i].dev_name,
+				CONFIG.eths[i].ifindex,
 				CONFIG.eths[i].haddr[0],
 				CONFIG.eths[i].haddr[1],
 				CONFIG.eths[i].haddr[2],
@@ -401,7 +401,7 @@ EnrollARPTableEntry(char *optstr)
 	int idx;
 
 	char *saveptr;
-	
+
 	saveptr = NULL;
 	dip_s = strtok_r(optstr, "/", &saveptr);
 	prefix_s = strtok_r(NULL, " ", &saveptr);
@@ -426,7 +426,7 @@ EnrollARPTableEntry(char *optstr)
 	CONFIG.arp.entry[idx].prefix = prefix;
 	ParseIPAddress(&CONFIG.arp.entry[idx].ip, dip_s);
 	ParseMACAddress(CONFIG.arp.entry[idx].haddr, daddr_s);
-	
+
 	dip_mask = MaskFromPrefix(prefix);
 	CONFIG.arp.entry[idx].ip_mask = dip_mask;
 	CONFIG.arp.entry[idx].ip_masked = CONFIG.arp.entry[idx].ip & dip_mask;
@@ -450,7 +450,7 @@ EnrollARPTableEntry(char *optstr)
 */
 }
 /*----------------------------------------------------------------------------*/
-int 
+int
 LoadARPTable()
 {
 #define ARP_ENTRY "ARP_ENTRY"
@@ -509,7 +509,7 @@ LoadARPTable()
 			hasNumEntry = 1;
 		} else {
 			if (numEntry <= 0) {
-				fprintf(stderr, 
+				fprintf(stderr,
 						"Error in arp.conf: more entries than "
 						"are specifed, entry=%s\n", p);
 				exit(EXIT_FAILURE);
@@ -522,7 +522,7 @@ LoadARPTable()
 	fclose(fc);
 	return 0;
 }
-/*----------------------------------------------------------------------------*/	
+/*----------------------------------------------------------------------------*/
 static int
 SetMultiProcessSupport(char *multiprocess_details)
 {
@@ -538,7 +538,7 @@ SetMultiProcessSupport(char *multiprocess_details)
 	}
 	CONFIG.multi_process = mystrtol(sample, 10);
 	TRACE_CONFIG("Loading multi-process configuration: %d\n",
-		     CONFIG.multi_process);	
+		     CONFIG.multi_process);
 	return 0;
 }
 /*----------------------------------------------------------------------------*/
@@ -554,7 +554,7 @@ SaveInterfaceStatList(char *dev_name_list)
 	strcpy(port_stat_list, dev_name_list);
 }
 /*----------------------------------------------------------------------------*/
-static int 
+static int
 ParseConfiguration(char *line)
 {
 	char optstr[MAX_OPTLINE_LEN];
@@ -670,7 +670,7 @@ ParseConfiguration(char *line)
 	return 0;
 }
 /*----------------------------------------------------------------------------*/
-int 
+int
 LoadConfiguration(const char *fname)
 {
 	FILE *fp;
@@ -728,13 +728,13 @@ LoadConfiguration(const char *fname)
 	/* if sndbuf & rcvbuf are not set, rcvbuf = sndbuf = 8192 */
 	if (CONFIG.rcvbuf_size == -1 && CONFIG.sndbuf_size == -1)
 		CONFIG.sndbuf_size = CONFIG.rcvbuf_size = 8192;
-	
+
 	return SetNetEnv(port_list, port_stat_list);
-	
+
 	return 0;
 }
 /*----------------------------------------------------------------------------*/
-void 
+void
 PrintConfiguration()
 {
 	int i;
@@ -742,7 +742,7 @@ PrintConfiguration()
 	TRACE_CONFIG("Configurations:\n");
 	TRACE_CONFIG("Number of CPU cores available: %d\n", num_cpus);
 	TRACE_CONFIG("Number of CPU cores to use: %d\n", CONFIG.num_cores);
-	TRACE_CONFIG("Maximum number of concurrency per core: %d\n", 
+	TRACE_CONFIG("Maximum number of concurrency per core: %d\n",
 			CONFIG.max_concurrency);
 	if (CONFIG.multi_process == 1) {
 		TRACE_CONFIG("Multi-process support is enabled\n");
@@ -751,18 +751,18 @@ PrintConfiguration()
 		else
 			TRACE_CONFIG("Current core is not master (for multi-process)\n");
 	}
-	TRACE_CONFIG("Maximum number of preallocated buffers per core: %d\n", 
+	TRACE_CONFIG("Maximum number of preallocated buffers per core: %d\n",
 			CONFIG.max_num_buffers);
 	TRACE_CONFIG("Receive buffer size: %d\n", CONFIG.rcvbuf_size);
 	TRACE_CONFIG("Send buffer size: %d\n", CONFIG.sndbuf_size);
 
 	if (CONFIG.tcp_timeout > 0) {
-		TRACE_CONFIG("TCP timeout seconds: %d\n", 
+		TRACE_CONFIG("TCP timeout seconds: %d\n",
 				USEC_TO_SEC(CONFIG.tcp_timeout * TIME_TICK));
 	} else {
 		TRACE_CONFIG("TCP timeout check disabled.\n");
 	}
-	TRACE_CONFIG("TCP timewait seconds: %d\n", 
+	TRACE_CONFIG("TCP timewait seconds: %d\n",
 			USEC_TO_SEC(CONFIG.tcp_timewait * TIME_TICK));
 	TRACE_CONFIG("NICs to print statistics:");
 	for (i = 0; i < CONFIG.eths_num; i++) {

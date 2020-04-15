@@ -23,13 +23,13 @@
 #define MAX_FILE_NAME 1024
 
 /*----------------------------------------------------------------------------*/
-inline int 
-GetNumCPUs() 
+inline int
+GetNumCPUs()
 {
 	return sysconf(_SC_NPROCESSORS_ONLN);
 }
 /*----------------------------------------------------------------------------*/
-pid_t 
+pid_t
 Gettid()
 {
 	return syscall(__NR_gettid);
@@ -44,7 +44,7 @@ whichCoreID(int thread_no)
 		return thread_no;
 	else {
 		int limit =  mpz_popcount(CONFIG._cpumask);
-		
+
 		for (cpu_id = 0, i = 0; i < limit; cpu_id++)
 			if (mpz_tstbit(CONFIG._cpumask, cpu_id)) {
 				if (thread_no == i)
@@ -56,7 +56,7 @@ whichCoreID(int thread_no)
 	return thread_no;
 }
 /*----------------------------------------------------------------------------*/
-int 
+int
 mtcp_core_affinitize(int cpu)
 {
 	cpu_set_t cpus;
@@ -66,7 +66,7 @@ mtcp_core_affinitize(int cpu)
 	n = GetNumCPUs();
 
 	cpu = whichCoreID(cpu);
-	
+
 	if (cpu < 0 || cpu >= (int) n) {
 		errno = -EINVAL;
 		return -1;
@@ -82,7 +82,7 @@ mtcp_core_affinitize(int cpu)
 	FILE *fp;
 	char sysfname[MAX_FILE_NAME];
 	int phy_id;
-	
+
 	ret = sched_setaffinity(Gettid(), sizeof(cpus), &cpus);
 
 	if (numa_max_node() == 0)
@@ -92,7 +92,7 @@ mtcp_core_affinitize(int cpu)
 	assert(bmask);
 
 	/* read physical id of the core from sys information */
-	snprintf(sysfname, MAX_FILE_NAME - 1, 
+	snprintf(sysfname, MAX_FILE_NAME - 1,
 			"/sys/devices/system/cpu/cpu%d/topology/physical_package_id", cpu);
 	fp = fopen(sysfname, "r");
 	if (!fp) {

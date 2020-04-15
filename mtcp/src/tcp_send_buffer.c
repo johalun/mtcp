@@ -19,13 +19,13 @@ struct sb_manager
 
 } sb_manager;
 /*----------------------------------------------------------------------------*/
-uint32_t 
+uint32_t
 SBGetCurnum(sb_manager_t sbm)
 {
 	return sbm->cur_num;
 }
 /*----------------------------------------------------------------------------*/
-sb_manager_t 
+sb_manager_t
 SBManagerCreate(mtcp_manager_t mtcp, size_t chunk_size, uint32_t cnum)
 {
 	sb_manager_t sbm = (sb_manager_t)calloc(1, sizeof(sb_manager));
@@ -39,7 +39,7 @@ SBManagerCreate(mtcp_manager_t mtcp, size_t chunk_size, uint32_t cnum)
 #if !defined(DISABLE_DPDK) && !defined(ENABLE_ONVM)
 	char pool_name[RTE_MEMPOOL_NAMESIZE];
 	sprintf(pool_name, "sbm_pool_%d", mtcp->ctx->cpu);
-	sbm->mp = (mem_pool_t)MPCreate(pool_name, chunk_size, (uint64_t)chunk_size * cnum);	
+	sbm->mp = (mem_pool_t)MPCreate(pool_name, chunk_size, (uint64_t)chunk_size * cnum);
 #else
 	sbm->mp = (mem_pool_t)MPCreate(chunk_size, (uint64_t)chunk_size * cnum);
 #endif
@@ -89,12 +89,12 @@ SBInit(sb_manager_t sbm, uint32_t init_seq)
 	buf->size = sbm->chunk_size;
 
 	buf->init_seq = buf->head_seq = init_seq;
-	
+
 	return buf;
 }
 /*----------------------------------------------------------------------------*/
 #if 0
-static void 
+static void
 SBFreeInternal(sb_manager_t sbm, struct tcp_send_buffer *buf)
 {
 	if (!buf)
@@ -110,7 +110,7 @@ SBFreeInternal(sb_manager_t sbm, struct tcp_send_buffer *buf)
 }
 #endif
 /*----------------------------------------------------------------------------*/
-void 
+void
 SBFree(sb_manager_t sbm, struct tcp_send_buffer *buf)
 {
 	if (!buf)
@@ -119,7 +119,7 @@ SBFree(sb_manager_t sbm, struct tcp_send_buffer *buf)
 	SBEnqueue(sbm->freeq, buf);
 }
 /*----------------------------------------------------------------------------*/
-size_t 
+size_t
 SBPut(sb_manager_t sbm, struct tcp_send_buffer *buf, const void *data, size_t len)
 {
 	size_t to_put;
@@ -151,7 +151,7 @@ SBPut(sb_manager_t sbm, struct tcp_send_buffer *buf, const void *data, size_t le
 	return to_put;
 }
 /*----------------------------------------------------------------------------*/
-size_t 
+size_t
 SBRemove(sb_manager_t sbm, struct tcp_send_buffer *buf, size_t len)
 {
 	size_t to_remove;

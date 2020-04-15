@@ -18,28 +18,28 @@
 #define TCP_MAX_SEQ 4294967295
 
 /*---------------------------------------------------------------------------*/
-char *state_str[] = {"TCP_ST_CLOSED", 
-	"TCP_ST_LISTEN", 
-	"TCP_ST_SYN_SENT", 
-	"TCP_ST_SYN_RCVD", 
-	"TCP_ST_ESTABILSHED", 
-	"TCP_ST_FIN_WAIT_1", 
-	"TCP_ST_FIN_WAIT_2", 
-	"TCP_ST_CLOSE_WAIT", 
-	"TCP_ST_CLOSING", 
-	"TCP_ST_LAST_ACK", 
+char *state_str[] = {"TCP_ST_CLOSED",
+	"TCP_ST_LISTEN",
+	"TCP_ST_SYN_SENT",
+	"TCP_ST_SYN_RCVD",
+	"TCP_ST_ESTABILSHED",
+	"TCP_ST_FIN_WAIT_1",
+	"TCP_ST_FIN_WAIT_2",
+	"TCP_ST_CLOSE_WAIT",
+	"TCP_ST_CLOSING",
+	"TCP_ST_LAST_ACK",
 	"TCP_ST_TIME_WAIT"
 };
 /*---------------------------------------------------------------------------*/
 char *close_reason_str[] = {
-	"NOT_CLOSED", 
-	"CLOSE", 
-	"CLOSED", 
-	"CONN_FAIL", 
-	"CONN_LOST", 
-	"RESET", 
-	"NO_MEM", 
-	"DENIED", 
+	"NOT_CLOSED",
+	"CLOSE",
+	"CLOSED",
+	"CONN_FAIL",
+	"CONN_LOST",
+	"RESET",
+	"NO_MEM",
+	"DENIED",
 	"TIMEDOUT"
 };
 /*---------------------------------------------------------------------------*/
@@ -101,7 +101,7 @@ EqualFlow(const void *f1, const void *f2)
 	tcp_stream *flow1 = (tcp_stream *)f1;
 	tcp_stream *flow2 = (tcp_stream *)f2;
 
-	return (flow1->saddr == flow2->saddr && 
+	return (flow1->saddr == flow2->saddr &&
 			flow1->sport == flow2->sport &&
 			flow1->daddr == flow2->daddr &&
 			flow1->dport == flow2->dport);
@@ -121,12 +121,12 @@ EqualSID(const void *f1, const void *f2) {
 /*----------------------------------------------------------------------------*/
 #endif
 
-inline void 
+inline void
 RaiseReadEvent(mtcp_manager_t mtcp, tcp_stream *stream)
 {
 	if (stream->socket) {
 		if (stream->socket->epoll & MTCP_EPOLLIN) {
-			AddEpollEvent(mtcp->ep, 
+			AddEpollEvent(mtcp->ep,
 					MTCP_EVENT_QUEUE, stream->socket, MTCP_EPOLLIN);
 #if BLOCKING_SUPPORT
 		} else if (!(stream->socket->opts & MTCP_NONBLOCK)) {
@@ -142,12 +142,12 @@ RaiseReadEvent(mtcp_manager_t mtcp, tcp_stream *stream)
 	}
 }
 /*---------------------------------------------------------------------------*/
-inline void 
+inline void
 RaiseWriteEvent(mtcp_manager_t mtcp, tcp_stream *stream)
 {
 	if (stream->socket) {
 		if (stream->socket->epoll & MTCP_EPOLLOUT) {
-			AddEpollEvent(mtcp->ep, 
+			AddEpollEvent(mtcp->ep,
 					MTCP_EVENT_QUEUE, stream->socket, MTCP_EPOLLOUT);
 #if BLOCKING_SUPPORT
 		} else if (!(stream->socket->opts & MTCP_NONBLOCK)) {
@@ -163,15 +163,15 @@ RaiseWriteEvent(mtcp_manager_t mtcp, tcp_stream *stream)
 	}
 }
 /*---------------------------------------------------------------------------*/
-inline void 
+inline void
 RaiseCloseEvent(mtcp_manager_t mtcp, tcp_stream *stream)
 {
 	if (stream->socket) {
 		if (stream->socket->epoll & MTCP_EPOLLRDHUP) {
-			AddEpollEvent(mtcp->ep, 
+			AddEpollEvent(mtcp->ep,
 					MTCP_EVENT_QUEUE, stream->socket, MTCP_EPOLLRDHUP);
 		} else if (stream->socket->epoll & MTCP_EPOLLIN) {
-			AddEpollEvent(mtcp->ep, 
+			AddEpollEvent(mtcp->ep,
 					MTCP_EVENT_QUEUE, stream->socket, MTCP_EPOLLIN);
 #if BLOCKING_SUPPORT
 		} else if (!(stream->socket->opts & MTCP_NONBLOCK)) {
@@ -194,12 +194,12 @@ RaiseCloseEvent(mtcp_manager_t mtcp, tcp_stream *stream)
 	}
 }
 /*---------------------------------------------------------------------------*/
-inline void 
+inline void
 RaiseErrorEvent(mtcp_manager_t mtcp, tcp_stream *stream)
 {
 	if (stream->socket) {
 		if (stream->socket->epoll & MTCP_EPOLLERR) {
-			AddEpollEvent(mtcp->ep, 
+			AddEpollEvent(mtcp->ep,
 					MTCP_EVENT_QUEUE, stream->socket, MTCP_EPOLLERR);
 #if BLOCKING_SUPPORT
 		} else if (!(stream->socket->opts & MTCP_NONBLOCK)) {
@@ -221,7 +221,7 @@ RaiseErrorEvent(mtcp_manager_t mtcp, tcp_stream *stream)
 }
 /*---------------------------------------------------------------------------*/
 tcp_stream *
-CreateTCPStream(mtcp_manager_t mtcp, socket_map_t socket, int type, 
+CreateTCPStream(mtcp_manager_t mtcp, socket_map_t socket, int type,
 		uint32_t saddr, uint16_t sport, uint32_t daddr, uint16_t dport)
 {
 	tcp_stream *stream = NULL;
@@ -230,13 +230,13 @@ CreateTCPStream(mtcp_manager_t mtcp, socket_map_t socket, int type,
 	uint8_t is_external;
 	uint8_t *sa;
 	uint8_t *da;
-	
+
 	pthread_mutex_lock(&mtcp->ctx->flow_pool_lock);
 
 	stream = (tcp_stream *)MPAllocateChunk(mtcp->flow_pool);
 	if (!stream) {
 		TRACE_ERROR("Cannot allocate memory for the stream. "
-				"CONFIG.max_concurrency: %d, concurrent: %u\n", 
+				"CONFIG.max_concurrency: %d, concurrent: %u\n",
 				CONFIG.max_concurrency, mtcp->flow_cnt);
 		pthread_mutex_unlock(&mtcp->ctx->flow_pool_lock);
 		return NULL;
@@ -299,7 +299,7 @@ CreateTCPStream(mtcp_manager_t mtcp, socket_map_t socket, int type,
 	stream->state = TCP_ST_LISTEN;
 
 	stream->on_rto_idx = -1;
-	
+
 	stream->sndvar->ip_id = 0;
 	stream->sndvar->mss = TCP_DEFAULT_MSS;
 	stream->sndvar->wscale_mine = TCP_DEFAULT_WSCALE;
@@ -366,9 +366,9 @@ CreateTCPStream(mtcp_manager_t mtcp, socket_map_t socket, int type,
 	sa = (uint8_t *)&stream->saddr;
 	da = (uint8_t *)&stream->daddr;
 	TRACE_STREAM("CREATED NEW TCP STREAM %d: "
-			"%u.%u.%u.%u(%d) -> %u.%u.%u.%u(%d) (ISS: %u)\n", stream->id, 
-			sa[0], sa[1], sa[2], sa[3], ntohs(stream->sport), 
-			da[0], da[1], da[2], da[3], ntohs(stream->dport), 
+			"%u.%u.%u.%u(%d) -> %u.%u.%u.%u(%d) (ISS: %u)\n", stream->id,
+			sa[0], sa[1], sa[2], sa[3], ntohs(stream->sport),
+			da[0], da[1], da[2], da[3], ntohs(stream->dport),
 			stream->sndvar->iss);
 
 #if RATE_LIMIT_ENABLED
@@ -395,9 +395,9 @@ DestroyTCPStream(mtcp_manager_t mtcp, tcp_stream *stream)
 	int ret;
 
 #ifdef DUMP_STREAM
-	if (stream->close_reason != TCP_ACTIVE_CLOSE && 
+	if (stream->close_reason != TCP_ACTIVE_CLOSE &&
 			stream->close_reason != TCP_PASSIVE_CLOSE) {
-		thread_printf(mtcp, mtcp->log_fp, 
+		thread_printf(mtcp, mtcp->log_fp,
 				"Stream %d abnormally closed.\n", stream->id);
 		DumpStream(mtcp, stream);
 		DumpControlList(mtcp, mtcp->n_sender[0]);
@@ -407,22 +407,22 @@ DestroyTCPStream(mtcp_manager_t mtcp, tcp_stream *stream)
 	sa = (uint8_t *)&stream->saddr;
 	da = (uint8_t *)&stream->daddr;
 	TRACE_STREAM("DESTROY TCP STREAM %d: "
-			"%u.%u.%u.%u(%d) -> %u.%u.%u.%u(%d) (%s)\n", stream->id, 
-			sa[0], sa[1], sa[2], sa[3], ntohs(stream->sport), 
-			da[0], da[1], da[2], da[3], ntohs(stream->dport), 
+			"%u.%u.%u.%u(%d) -> %u.%u.%u.%u(%d) (%s)\n", stream->id,
+			sa[0], sa[1], sa[2], sa[3], ntohs(stream->sport),
+			da[0], da[1], da[2], da[3], ntohs(stream->dport),
 			close_reason_str[stream->close_reason]);
 
 	if (stream->sndvar->sndbuf) {
 		TRACE_FSTAT("Stream %d: send buffer "
-				"cum_len: %lu, len: %u\n", stream->id, 
-				stream->sndvar->sndbuf->cum_len, 
+				"cum_len: %lu, len: %u\n", stream->id,
+				stream->sndvar->sndbuf->cum_len,
 				stream->sndvar->sndbuf->len);
 	}
 	if (stream->rcvvar->rcvbuf) {
 		TRACE_FSTAT("Stream %d: recv buffer "
-				"cum_len: %lu, merged_len: %u, last_len: %u\n", stream->id, 
-				stream->rcvvar->rcvbuf->cum_len, 
-				stream->rcvvar->rcvbuf->merged_len, 
+				"cum_len: %lu, merged_len: %u, last_len: %u\n", stream->id,
+				stream->rcvvar->rcvbuf->cum_len,
+				stream->rcvvar->rcvbuf->merged_len,
 				stream->rcvvar->rcvbuf->last_len);
 	}
 
@@ -430,43 +430,43 @@ DestroyTCPStream(mtcp_manager_t mtcp, tcp_stream *stream)
 	/* Triple duplicated ack stats */
 	if (stream->sndvar->rstat.tdp_ack_cnt) {
 		TRACE_FSTAT("Stream %d: triple duplicated ack: %u, "
-				"retransmission bytes: %u, average rtm bytes/ack: %u\n", 
-				stream->id, 
-				stream->sndvar->rstat.tdp_ack_cnt, stream->sndvar->rstat.tdp_ack_bytes, 
+				"retransmission bytes: %u, average rtm bytes/ack: %u\n",
+				stream->id,
+				stream->sndvar->rstat.tdp_ack_cnt, stream->sndvar->rstat.tdp_ack_bytes,
 				stream->sndvar->rstat.tdp_ack_bytes / stream->sndvar->rstat.tdp_ack_cnt);
 	}
 
 	/* Retransmission timeout stats */
 	if (stream->sndvar->rstat.rto_cnt > 0) {
-		TRACE_FSTAT("Stream %d: timeout count: %u, bytes: %u\n", stream->id, 
+		TRACE_FSTAT("Stream %d: timeout count: %u, bytes: %u\n", stream->id,
 				stream->sndvar->rstat.rto_cnt, stream->sndvar->rstat.rto_bytes);
 	}
 
 	/* Recovery stats */
 	if (stream->sndvar->rstat.ack_upd_cnt) {
 		TRACE_FSTAT("Stream %d: snd_nxt update count: %u, "
-				"snd_nxt update bytes: %u, average update bytes/update: %u\n", 
-				stream->id, 
-				stream->sndvar->rstat.ack_upd_cnt, stream->sndvar->rstat.ack_upd_bytes, 
+				"snd_nxt update bytes: %u, average update bytes/update: %u\n",
+				stream->id,
+				stream->sndvar->rstat.ack_upd_cnt, stream->sndvar->rstat.ack_upd_bytes,
 				stream->sndvar->rstat.ack_upd_bytes / stream->sndvar->rstat.ack_upd_cnt);
 	}
 #if TCP_OPT_SACK_ENABLED
 	if (stream->sndvar->rstat.sack_cnt) {
 		TRACE_FSTAT("Selective ack count: %u, bytes: %u, "
-				"average bytes/ack: %u\n", 
-				stream->sndvar->rstat.sack_cnt, stream->sndvar->rstat.sack_bytes, 
+				"average bytes/ack: %u\n",
+				stream->sndvar->rstat.sack_cnt, stream->sndvar->rstat.sack_bytes,
 				stream->sndvar->rstat.sack_bytes / stream->sndvar->rstat.sack_cnt);
 	} else {
-		TRACE_FSTAT("Selective ack count: %u, bytes: %u\n", 
+		TRACE_FSTAT("Selective ack count: %u, bytes: %u\n",
 				stream->sndvar->rstat.sack_cnt, stream->sndvar->rstat.sack_bytes);
 	}
 	if (stream->sndvar->rstat.tdp_sack_cnt) {
 		TRACE_FSTAT("Selective tdp ack count: %u, bytes: %u, "
-				"average bytes/ack: %u\n", 
-				stream->sndvar->rstat.tdp_sack_cnt, stream->sndvar->rstat.tdp_sack_bytes, 
+				"average bytes/ack: %u\n",
+				stream->sndvar->rstat.tdp_sack_cnt, stream->sndvar->rstat.tdp_sack_bytes,
 				stream->sndvar->rstat.tdp_sack_bytes / stream->sndvar->rstat.tdp_sack_cnt);
 	} else {
-		TRACE_FSTAT("Selective ack count: %u, bytes: %u\n", 
+		TRACE_FSTAT("Selective ack count: %u, bytes: %u\n",
 				stream->sndvar->rstat.tdp_sack_cnt, stream->sndvar->rstat.tdp_sack_bytes);
 	}
 #endif /* TCP_OPT_SACK_ENABLED */
@@ -481,10 +481,10 @@ DestroyTCPStream(mtcp_manager_t mtcp, tcp_stream *stream)
 	RemoveFromControlList(mtcp, stream);
 	RemoveFromSendList(mtcp, stream);
 	RemoveFromACKList(mtcp, stream);
-	
+
 	if (stream->on_rto_idx >= 0)
 		RemoveFromRTOList(mtcp, stream);
- 	
+
 	if (stream->on_timewait_list)
 		RemoveFromTimewaitList(mtcp, stream);
 
@@ -519,7 +519,7 @@ DestroyTCPStream(mtcp_manager_t mtcp, tcp_stream *stream)
 	SBUF_LOCK_DESTROY(&stream->sndvar->write_lock);
 
 	assert(stream->on_hash_table == TRUE);
-	
+
 	/* free ring buffers */
 	if (stream->sndvar->sndbuf) {
 		SBFree(mtcp->rbm_snd, stream->sndvar->sndbuf);
@@ -535,7 +535,7 @@ DestroyTCPStream(mtcp_manager_t mtcp, tcp_stream *stream)
 	/* remove from flow hash table */
 	StreamHTRemove(mtcp->tcp_flow_table, stream);
 	stream->on_hash_table = FALSE;
-	
+
 	mtcp->flow_cnt--;
 
 	MPFreeChunk(mtcp->rv_pool, stream->rcvvar);
@@ -574,7 +574,7 @@ DestroyTCPStream(mtcp_manager_t mtcp, tcp_stream *stream)
 	UNUSED(sa);
 }
 /*---------------------------------------------------------------------------*/
-void 
+void
 DumpStream(mtcp_manager_t mtcp, tcp_stream *stream)
 {
 	uint8_t *sa, *da;
@@ -584,30 +584,30 @@ DumpStream(mtcp_manager_t mtcp, tcp_stream *stream)
 	sa = (uint8_t *)&stream->saddr;
 	da = (uint8_t *)&stream->daddr;
 	thread_printf(mtcp, mtcp->log_fp, "========== Stream %u: "
-			"%u.%u.%u.%u(%u) -> %u.%u.%u.%u(%u) ==========\n", stream->id, 
-			sa[0], sa[1], sa[2], sa[3], ntohs(stream->sport), 
+			"%u.%u.%u.%u(%u) -> %u.%u.%u.%u(%u) ==========\n", stream->id,
+			sa[0], sa[1], sa[2], sa[3], ntohs(stream->sport),
 			da[0], da[1], da[2], da[3], ntohs(stream->dport));
-	thread_printf(mtcp, mtcp->log_fp, 
-			"Stream id: %u, type: %u, state: %s, close_reason: %s\n",  
-			stream->id, stream->stream_type, 
+	thread_printf(mtcp, mtcp->log_fp,
+			"Stream id: %u, type: %u, state: %s, close_reason: %s\n",
+			stream->id, stream->stream_type,
 			TCPStateToString(stream), close_reason_str[stream->close_reason]);
 	if (stream->socket) {
 		socket_map_t socket = stream->socket;
 		thread_printf(mtcp, mtcp->log_fp, "Socket id: %d, type: %d, opts: %u\n"
 				"epoll: %u (IN: %u, OUT: %u, ERR: %u, RDHUP: %u, ET: %u)\n"
-				"events: %u (IN: %u, OUT: %u, ERR: %u, RDHUP: %u, ET: %u)\n", 
-				socket->id, socket->socktype, socket->opts, 
-				socket->epoll, socket->epoll & MTCP_EPOLLIN, 
-				socket->epoll & MTCP_EPOLLOUT, socket->epoll & MTCP_EPOLLERR, 
-				socket->epoll & MTCP_EPOLLRDHUP, socket->epoll & MTCP_EPOLLET, 
-				socket->events, socket->events & MTCP_EPOLLIN, 
-				socket->events & MTCP_EPOLLOUT, socket->events & MTCP_EPOLLERR, 
+				"events: %u (IN: %u, OUT: %u, ERR: %u, RDHUP: %u, ET: %u)\n",
+				socket->id, socket->socktype, socket->opts,
+				socket->epoll, socket->epoll & MTCP_EPOLLIN,
+				socket->epoll & MTCP_EPOLLOUT, socket->epoll & MTCP_EPOLLERR,
+				socket->epoll & MTCP_EPOLLRDHUP, socket->epoll & MTCP_EPOLLET,
+				socket->events, socket->events & MTCP_EPOLLIN,
+				socket->events & MTCP_EPOLLOUT, socket->events & MTCP_EPOLLERR,
 				socket->events & MTCP_EPOLLRDHUP, socket->events & MTCP_EPOLLET);
 	} else {
 		thread_printf(mtcp, mtcp->log_fp, "Socket: (null)\n");
 	}
 
-	thread_printf(mtcp, mtcp->log_fp, 
+	thread_printf(mtcp, mtcp->log_fp,
 			"on_hash_table: %u, on_control_list: %u (wait: %u), on_send_list: %u, "
 			"on_ack_list: %u, is_wack: %u, ack_cnt: %u\n"
 			"on_rto_idx: %d, on_timewait_list: %u, on_timeout_list: %u, "
@@ -616,69 +616,69 @@ DumpStream(mtcp_manager_t mtcp, tcp_stream *stream)
 			"on_closeq_int: %u, on_resetq: %u, on_resetq_int: %u\n"
 			"have_reset: %u, is_fin_sent: %u, is_fin_ackd: %u, "
 			"saw_timestamp: %u, sack_permit: %u, "
-			"is_bound_addr: %u, need_wnd_adv: %u\n", stream->on_hash_table, 
-			sndvar->on_control_list, stream->control_list_waiting, sndvar->on_send_list, 
-			sndvar->on_ack_list, sndvar->is_wack, sndvar->ack_cnt, 
-			stream->on_rto_idx, stream->on_timewait_list, stream->on_timeout_list, 
-			stream->on_rcv_br_list, stream->on_snd_br_list, 
-			sndvar->on_sendq, sndvar->on_ackq, 
-			stream->closed, sndvar->on_closeq, sndvar->on_closeq_int, 
-			sndvar->on_resetq, sndvar->on_resetq_int, 
-			stream->have_reset, sndvar->is_fin_sent, 
-			sndvar->is_fin_ackd, stream->saw_timestamp, stream->sack_permit, 
+			"is_bound_addr: %u, need_wnd_adv: %u\n", stream->on_hash_table,
+			sndvar->on_control_list, stream->control_list_waiting, sndvar->on_send_list,
+			sndvar->on_ack_list, sndvar->is_wack, sndvar->ack_cnt,
+			stream->on_rto_idx, stream->on_timewait_list, stream->on_timeout_list,
+			stream->on_rcv_br_list, stream->on_snd_br_list,
+			sndvar->on_sendq, sndvar->on_ackq,
+			stream->closed, sndvar->on_closeq, sndvar->on_closeq_int,
+			sndvar->on_resetq, sndvar->on_resetq_int,
+			stream->have_reset, sndvar->is_fin_sent,
+			sndvar->is_fin_ackd, stream->saw_timestamp, stream->sack_permit,
 			stream->is_bound_addr, stream->need_wnd_adv);
 
 	thread_printf(mtcp, mtcp->log_fp, "========== Send variables ==========\n");
-	thread_printf(mtcp, mtcp->log_fp, 
+	thread_printf(mtcp, mtcp->log_fp,
 			"ip_id: %u, mss: %u, eff_mss: %u, wscale (me, peer): (%u, %u), "
-			"nif_out: %d\n", 
-			sndvar->ip_id, sndvar->mss, sndvar->eff_mss, 
+			"nif_out: %d\n",
+			sndvar->ip_id, sndvar->mss, sndvar->eff_mss,
 			sndvar->wscale_mine, sndvar->wscale_peer, sndvar->nif_out);
-	thread_printf(mtcp, mtcp->log_fp, 
+	thread_printf(mtcp, mtcp->log_fp,
 			"snd_nxt: %u, snd_una: %u, iss: %u, fss: %u\nsnd_wnd: %u, "
-			"peer_wnd: %u, cwnd: %u, ssthresh: %u\n", 
-			stream->snd_nxt, sndvar->snd_una, sndvar->iss, sndvar->fss, 
+			"peer_wnd: %u, cwnd: %u, ssthresh: %u\n",
+			stream->snd_nxt, sndvar->snd_una, sndvar->iss, sndvar->fss,
 			sndvar->snd_wnd, sndvar->peer_wnd, sndvar->cwnd, sndvar->ssthresh);
 
 	if (sndvar->sndbuf) {
-		thread_printf(mtcp, mtcp->log_fp, 
+		thread_printf(mtcp, mtcp->log_fp,
 				"Send buffer: init_seq: %u, head_seq: %u, "
-				"len: %d, cum_len: %lu, size: %d\n", 
-				sndvar->sndbuf->init_seq, sndvar->sndbuf->head_seq, 
+				"len: %d, cum_len: %lu, size: %d\n",
+				sndvar->sndbuf->init_seq, sndvar->sndbuf->head_seq,
 				sndvar->sndbuf->len, sndvar->sndbuf->cum_len, sndvar->sndbuf->size);
 	} else {
 		thread_printf(mtcp, mtcp->log_fp, "Send buffer: (null)\n");
 	}
-	thread_printf(mtcp, mtcp->log_fp, 
+	thread_printf(mtcp, mtcp->log_fp,
 			"nrtx: %u, max_nrtx: %u, rto: %u, ts_rto: %u, "
-			"ts_lastack_sent: %u\n", sndvar->nrtx, sndvar->max_nrtx, 
+			"ts_lastack_sent: %u\n", sndvar->nrtx, sndvar->max_nrtx,
 			sndvar->rto, sndvar->ts_rto, sndvar->ts_lastack_sent);
 
-	thread_printf(mtcp, mtcp->log_fp, 
+	thread_printf(mtcp, mtcp->log_fp,
 			"========== Receive variables ==========\n");
-	thread_printf(mtcp, mtcp->log_fp, 
+	thread_printf(mtcp, mtcp->log_fp,
 			"rcv_nxt: %u, irs: %u, rcv_wnd: %u, "
-			"snd_wl1: %u, snd_wl2: %u\n", 
-			stream->rcv_nxt, rcvvar->irs, 
+			"snd_wl1: %u, snd_wl2: %u\n",
+			stream->rcv_nxt, rcvvar->irs,
 			rcvvar->rcv_wnd, rcvvar->snd_wl1, rcvvar->snd_wl2);
 	if (rcvvar->rcvbuf) {
-		thread_printf(mtcp, mtcp->log_fp, 
+		thread_printf(mtcp, mtcp->log_fp,
 				"Receive buffer: init_seq: %u, head_seq: %u, "
-				"merged_len: %d, cum_len: %lu, last_len: %d, size: %d\n", 
-				rcvvar->rcvbuf->init_seq, rcvvar->rcvbuf->head_seq, 
-				rcvvar->rcvbuf->merged_len, rcvvar->rcvbuf->cum_len, 
+				"merged_len: %d, cum_len: %lu, last_len: %d, size: %d\n",
+				rcvvar->rcvbuf->init_seq, rcvvar->rcvbuf->head_seq,
+				rcvvar->rcvbuf->merged_len, rcvvar->rcvbuf->cum_len,
 				rcvvar->rcvbuf->last_len, rcvvar->rcvbuf->size);
 	} else {
 		thread_printf(mtcp, mtcp->log_fp, "Receive buffer: (null)\n");
 	}
-	thread_printf(mtcp, mtcp->log_fp, "last_ack_seq: %u, dup_acks: %u\n", 
+	thread_printf(mtcp, mtcp->log_fp, "last_ack_seq: %u, dup_acks: %u\n",
 			rcvvar->last_ack_seq, rcvvar->dup_acks);
-	thread_printf(mtcp, mtcp->log_fp, 
+	thread_printf(mtcp, mtcp->log_fp,
 			"ts_recent: %u, ts_lastack_rcvd: %u, ts_last_ts_upd: %u, "
-			"ts_tw_expire: %u\n", rcvvar->ts_recent, rcvvar->ts_lastack_rcvd, 
+			"ts_tw_expire: %u\n", rcvvar->ts_recent, rcvvar->ts_lastack_rcvd,
 			rcvvar->ts_last_ts_upd, rcvvar->ts_tw_expire);
-	thread_printf(mtcp, mtcp->log_fp, 
-			"srtt: %u, mdev: %u, mdev_max: %u, rttvar: %u, rtt_seq: %u\n", 
-			rcvvar->srtt, rcvvar->mdev, rcvvar->mdev_max, 
+	thread_printf(mtcp, mtcp->log_fp,
+			"srtt: %u, mdev: %u, mdev_max: %u, rttvar: %u, rtt_seq: %u\n",
+			rcvvar->srtt, rcvvar->mdev, rcvvar->mdev_max,
 			rcvvar->rttvar, rcvvar->rtt_seq);
 }

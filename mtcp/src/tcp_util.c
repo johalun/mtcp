@@ -11,8 +11,8 @@
 #define MIN(a, b) ((a)<(b)?(a):(b))
 
 /*---------------------------------------------------------------------------*/
-void 
-ParseTCPOptions(tcp_stream *cur_stream, 
+void
+ParseTCPOptions(tcp_stream *cur_stream,
 		uint32_t cur_ts, uint8_t *tcpopt, int len)
 {
 	int i;
@@ -20,7 +20,7 @@ ParseTCPOptions(tcp_stream *cur_stream,
 
 	for (i = 0; i < len; ) {
 		opt = *(tcpopt + i++);
-		
+
 		if (opt == TCP_OPT_END) {	// end of option field
 			break;
 		} else if (opt == TCP_OPT_NOP) {	// no option
@@ -58,8 +58,8 @@ ParseTCPOptions(tcp_stream *cur_stream,
 	}
 }
 /*---------------------------------------------------------------------------*/
-inline int  
-ParseTCPTimestamp(tcp_stream *cur_stream, 
+inline int
+ParseTCPTimestamp(tcp_stream *cur_stream,
 		struct tcp_timestamp *ts, uint8_t *tcpopt, int len)
 {
 	int i;
@@ -67,7 +67,7 @@ ParseTCPTimestamp(tcp_stream *cur_stream,
 
 	for (i = 0; i < len; ) {
 		opt = *(tcpopt + i++);
-		
+
 		if (opt == TCP_OPT_END) {	// end of option field
 			break;
 		} else if (opt == TCP_OPT_NOP) {	// no option
@@ -184,7 +184,7 @@ GenerateSACKOption(tcp_stream *cur_stream, uint8_t *tcpopt)
 }
 /*----------------------------------------------------------------------------*/
 void
-ParseSACKOption(tcp_stream *cur_stream, 
+ParseSACKOption(tcp_stream *cur_stream,
 		uint32_t ack_seq, uint8_t *tcpopt, int len)
 {
 	int i, j;
@@ -193,7 +193,7 @@ ParseSACKOption(tcp_stream *cur_stream,
 
 	for (i = 0; i < len; ) {
 		opt = *(tcpopt + i++);
-		
+
 		if (opt == TCP_OPT_END) {	// end of option field
 			break;
 		} else if (opt == TCP_OPT_NOP) {	// no option
@@ -228,7 +228,7 @@ ParseSACKOption(tcp_stream *cur_stream,
 
                     }
                     TRACE_SACK("Found SACK entry. "
-                                "left_edge: %u, right_edge: %u\n", 
+                                "left_edge: %u, right_edge: %u\n",
                                 left_edge, right_edge);
                 }
                 i += j;
@@ -247,36 +247,36 @@ TCPCalcChecksum(uint16_t *buf, uint16_t len, uint32_t saddr, uint32_t daddr)
 	uint32_t sum;
 	uint16_t *w;
 	int nleft;
-	
+
 	sum = 0;
 	nleft = len;
 	w = buf;
-	
+
 	while (nleft > 1)
 	{
 		sum += *w++;
 		nleft -= 2;
 	}
-	
+
 	// add padding for odd length
 	if (nleft)
 		sum += *w & ntohs(0xFF00);
-	
+
 	// add pseudo header
 	sum += (saddr & 0x0000FFFF) + (saddr >> 16);
 	sum += (daddr & 0x0000FFFF) + (daddr >> 16);
 	sum += htons(len);
 	sum += htons(IPPROTO_TCP);
-	
+
 	sum = (sum >> 16) + (sum & 0xFFFF);
 	sum += (sum >> 16);
-	
+
 	sum = ~sum;
-	
+
 	return (uint16_t)sum;
 }
 /*---------------------------------------------------------------------------*/
-void 
+void
 PrintTCPOptions(uint8_t *tcpopt, int len)
 {
 	int i;
@@ -289,7 +289,7 @@ PrintTCPOptions(uint8_t *tcpopt, int len)
 
 	for (i = 0; i < len; ) {
 		opt = *(tcpopt + i++);
-		
+
 		if (opt == TCP_OPT_END) {	// end of option field
 			break;
 		} else if (opt == TCP_OPT_NOP) {	// no option

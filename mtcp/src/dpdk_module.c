@@ -352,9 +352,9 @@ dpdk_send_pkts(struct mtcp_thread_context *ctxt, int ifidx)
 				ss.rmiss = stats.imissed;
 				ss.rerr = stats.ierrors;
 				ss.terr = stats.oerrors;
-			} else 
+			} else
 				ss.rmiss = ss.rerr = ss.terr = 0;
-			
+
 			ss.tx_pkts = mtcp->nstat.tx_packets[ifidx];
 			ss.tx_bytes = mtcp->nstat.tx_bytes[ifidx];
 			ss.rx_pkts = mtcp->nstat.rx_packets[ifidx];
@@ -712,7 +712,7 @@ dpdk_load_module(void)
 			fflush(stdout);
 			if (!strncmp(dev_info[portid].driver_name, "net_mlx", 7))
 				port_conf.rx_adv_conf.rss_conf.rss_key_len = 40;
-			
+
 			ret = rte_eth_dev_configure(portid, CONFIG.num_cores, CONFIG.num_cores, &port_conf);
 			if (ret < 0)
 				rte_exit(EXIT_FAILURE, "Cannot configure device: err=%d, port=%u, cores: %d\n",
@@ -795,7 +795,7 @@ dpdk_load_module(void)
 		/* initializing dev_info struct */
 		for (i = 0; i < num_devices_attached; i++) {
 		        /* get portid form the index of attached devices */
-		        portid = devices_attached[i];			
+		        portid = devices_attached[i];
 			/* check port capabilities */
 			rte_eth_dev_info_get(i, &dev_info[portid]);
 		}

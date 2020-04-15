@@ -17,7 +17,7 @@
 #endif
 
 /*----------------------------------------------------------------------------*/
-struct hashtable * 
+struct hashtable *
 CreateHashtable(unsigned int (*hashfn) (const void *), // key function
 		int (*eqfn) (const void*, const void *),            // equality
 		int bins) // no of bins
@@ -73,10 +73,10 @@ DestroyHashtable(struct hashtable *ht)
 	free(ht);
 }
 /*----------------------------------------------------------------------------*/
-int 
+int
 StreamHTInsert(struct hashtable *ht, void *it)
 {
-	/* create an entry*/ 
+	/* create an entry*/
 	int idx;
 	tcp_stream *item = (tcp_stream *)it;
 
@@ -88,11 +88,11 @@ StreamHTInsert(struct hashtable *ht, void *it)
 	TAILQ_INSERT_TAIL(&ht->ht_table[idx], item, rcvvar->he_link);
 
 	item->ht_idx = TCP_AR_CNT;
-	
+
 	return 0;
 }
 /*----------------------------------------------------------------------------*/
-void* 
+void*
 StreamHTRemove(struct hashtable *ht, void *it)
 {
 	hash_bucket_head *head;
@@ -100,12 +100,12 @@ StreamHTRemove(struct hashtable *ht, void *it)
 	int idx = ht->hashfn(item);
 
 	head = &ht->ht_table[idx];
-	TAILQ_REMOVE(head, item, rcvvar->he_link);	
+	TAILQ_REMOVE(head, item, rcvvar->he_link);
 
 	return (item);
-}	
+}
 /*----------------------------------------------------------------------------*/
-void * 
+void *
 StreamHTSearch(struct hashtable *ht, const void *it)
 {
 	int idx;
@@ -117,7 +117,7 @@ StreamHTSearch(struct hashtable *ht, const void *it)
 
 	head = &ht->ht_table[ht->hashfn(item)];
 	TAILQ_FOREACH(walk, head, rcvvar->he_link) {
-		if (ht->eqfn(walk, item)) 
+		if (ht->eqfn(walk, item))
 			return walk;
 	}
 
@@ -142,10 +142,10 @@ EqualListener(const void *l1, const void *l2)
 	return (listener1->socket->saddr.sin_port == listener2->socket->saddr.sin_port);
 }
 /*----------------------------------------------------------------------------*/
-int 
+int
 ListenerHTInsert(struct hashtable *ht, void *it)
 {
-	/* create an entry*/ 
+	/* create an entry*/
 	int idx;
 	struct tcp_listener *item = (struct tcp_listener *)it;
 
@@ -155,11 +155,11 @@ ListenerHTInsert(struct hashtable *ht, void *it)
 	assert(idx >=0 && idx < NUM_BINS_LISTENERS);
 
 	TAILQ_INSERT_TAIL(&ht->lt_table[idx], item, he_link);
-	
+
 	return 0;
 }
 /*----------------------------------------------------------------------------*/
-void * 
+void *
 ListenerHTRemove(struct hashtable *ht, void *it)
 {
 	list_bucket_head *head;
@@ -167,12 +167,12 @@ ListenerHTRemove(struct hashtable *ht, void *it)
 	int idx = ht->hashfn(item);
 
 	head = &ht->lt_table[idx];
-	TAILQ_REMOVE(head, item, he_link);	
+	TAILQ_REMOVE(head, item, he_link);
 
 	return (item);
-}	
+}
 /*----------------------------------------------------------------------------*/
-void * 
+void *
 ListenerHTSearch(struct hashtable *ht, const void *it)
 {
 	int idx;
@@ -189,7 +189,7 @@ ListenerHTSearch(struct hashtable *ht, const void *it)
 
 	head = &ht->lt_table[idx];
 	TAILQ_FOREACH(walk, head, he_link) {
-		if (ht->eqfn(walk, &item)) 
+		if (ht->eqfn(walk, &item))
 			return walk;
 	}
 

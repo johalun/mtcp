@@ -24,7 +24,7 @@ get_mtcp_from_ccp(mtcp_manager_t *mtcp)
 	*mtcp = (mtcp_manager_t) ccp_get_global_impl();
 }
 /*----------------------------------------------------------------------------*/
-/* Function handlers passed to libccp */ 
+/* Function handlers passed to libccp */
 /*----------------------------------------------------------------------------*/
 static void
 _dp_set_cwnd(struct ccp_datapath *dp, struct ccp_connection *conn, uint32_t cwnd)
@@ -35,7 +35,7 @@ _dp_set_cwnd(struct ccp_datapath *dp, struct ccp_connection *conn, uint32_t cwnd
 
 	// (time_ms) (rtt) (curr_cwnd_pkts) (new_cwnd_pkts) (ssthresh)
 	if (cwnd != stream->sndvar->cwnd) {
-		CCP_PROBE("%lu %d %d->%d (ss=%d)\n", 
+		CCP_PROBE("%lu %d %d->%d (ss=%d)\n",
             USECS_TO_MS(now_usecs()),
             UNSHIFT_SRTT(stream->rcvvar->srtt)
             stream->sndvar->cwnd / stream->sndvar->mss,
@@ -139,7 +139,7 @@ setup_ccp_connection(mtcp_manager_t mtcp)
 
 	struct ccp_datapath dp = {
 				  .set_cwnd = &_dp_set_cwnd,
-				  .set_rate_abs = &_dp_set_rate_abs, 
+				  .set_rate_abs = &_dp_set_rate_abs,
 				  .set_rate_rel = &_dp_set_rate_rel,
 				  .send_msg = &_dp_send_msg,
 				  .now = &now_usecs,
@@ -210,7 +210,7 @@ ccp_create(mtcp_manager_t mtcp, tcp_stream *stream)
 /*----------------------------------------------------------------------------*/
 uint32_t last_drop_t = 0;
 void
-ccp_cong_control(mtcp_manager_t mtcp, tcp_stream *stream, 
+ccp_cong_control(mtcp_manager_t mtcp, tcp_stream *stream,
 		 uint32_t ack, uint64_t bytes_delivered, uint64_t packets_delivered)
 {
 	uint64_t rin  = bytes_delivered, //* S_TO_US,  // TODO:CCP divide by snd_int_us
@@ -222,8 +222,8 @@ ccp_cong_control(mtcp_manager_t mtcp, tcp_stream *stream,
 
 	mmt->bytes_acked       = bytes_delivered;
 	mmt->packets_acked     = packets_delivered;
-	mmt->snd_cwnd          = stream->sndvar->cwnd; 
-	mmt->rtt_sample_us     = UNSHIFT_SRTT(stream->rcvvar->srtt); 
+	mmt->snd_cwnd          = stream->sndvar->cwnd;
+	mmt->rtt_sample_us     = UNSHIFT_SRTT(stream->rcvvar->srtt);
 	mmt->bytes_in_flight   = 0; // TODO
 	mmt->packets_in_flight = 0; // TODO
 	mmt->rate_outgoing     = rin;
@@ -253,7 +253,7 @@ ccp_cong_control(mtcp_manager_t mtcp, tcp_stream *stream,
 		stream->rcvvar->sacked_pkts    = 0;
 #endif
 	} else {
-		TRACE_ERROR("ccp_connection not initialized\n");	
+		TRACE_ERROR("ccp_connection not initialized\n");
 	}
 }
 
@@ -263,7 +263,7 @@ uint32_t last_loss = 0;
 #endif
 uint32_t last_tri_dupack_seq = 0;
 
-/* Should be called for any other connection event other than ACK */ 
+/* Should be called for any other connection event other than ACK */
 /*----------------------------------------------------------------------------*/
 void
 ccp_record_event(mtcp_manager_t mtcp, tcp_stream *stream, uint8_t event_type, uint32_t val)
@@ -285,7 +285,7 @@ ccp_record_event(mtcp_manager_t mtcp, tcp_stream *stream, uint8_t event_type, ui
         case EVENT_TRI_DUPACK:
 #if TCP_OPT_SACK_ENABLED
 		if (val > window_edge_at_last_loss) {
-			TRACE_CCP("%lu tridup ack=%u\n", 
+			TRACE_CCP("%lu tridup ack=%u\n",
 				  now / 1000,
 				  val - stream->sndvar->iss
 				  );
@@ -303,7 +303,7 @@ ccp_record_event(mtcp_manager_t mtcp, tcp_stream *stream, uint8_t event_type, ui
 		// only count as a loss if we haven't already seen 3 dupacks for
 		// this seq number
 		if (last_tri_dupack_seq != val) {
-			TRACE_CCP("%lu tridup ack=%d\n", 
+			TRACE_CCP("%lu tridup ack=%d\n",
 				  now / 1000,
 				  val// - stream->sndvar->iss
 				  );

@@ -58,7 +58,7 @@
 
 #define PER_STREAM_SLICE 0.1		// in ms
 #define PER_STREAM_TCHECK 1			// in ms
-#define PS_SELECT_TIMEOUT 100		// in us 
+#define PS_SELECT_TIMEOUT 100		// in us
 
 #define GBPS(bytes) (bytes * 8.0 / (1000 * 1000 * 1000))
 
@@ -86,7 +86,7 @@ static int sigint_cnt[MAX_CPUS] = {0};
 static struct timespec sigint_ts[MAX_CPUS];
 /*----------------------------------------------------------------------------*/
 static int mtcp_master = -1;
-void 
+void
 mtcp_free_context(mctx_t mctx);
 /*----------------------------------------------------------------------------*/
 void
@@ -141,7 +141,7 @@ HandleSignal(int signal)
 	}
 }
 /*----------------------------------------------------------------------------*/
-static int 
+static int
 AttachDevice(struct mtcp_thread_context* ctx)
 {
 	int working = -1;
@@ -153,7 +153,7 @@ AttachDevice(struct mtcp_thread_context* ctx)
 }
 /*----------------------------------------------------------------------------*/
 #ifdef NETSTAT
-static inline void 
+static inline void
 InitStatCounter(struct stat_counter *counter)
 {
 	counter->cnt = 0;
@@ -162,7 +162,7 @@ InitStatCounter(struct stat_counter *counter)
 	counter->min = 0;
 }
 /*----------------------------------------------------------------------------*/
-static inline void 
+static inline void
 UpdateStatCounter(struct stat_counter *counter, int64_t value)
 {
 	counter->cnt++;
@@ -173,20 +173,20 @@ UpdateStatCounter(struct stat_counter *counter, int64_t value)
 		counter->min = value;
 }
 /*----------------------------------------------------------------------------*/
-static inline uint64_t 
+static inline uint64_t
 GetAverageStat(struct stat_counter *counter)
 {
 	return counter->cnt ? (counter->sum / counter->cnt) : 0;
 }
 /*----------------------------------------------------------------------------*/
-static inline int64_t 
+static inline int64_t
 TimeDiffUs(struct timeval *t2, struct timeval *t1)
 {
-	return (t2->tv_sec - t1->tv_sec) * 1000000 + 
+	return (t2->tv_sec - t1->tv_sec) * 1000000 +
 			(int64_t)(t2->tv_usec - t1->tv_usec);
 }
 /*----------------------------------------------------------------------------*/
-static inline void 
+static inline void
 PrintThreadNetworkStats(mtcp_manager_t mtcp, struct net_stat *ns)
 {
 	int i;
@@ -202,9 +202,9 @@ PrintThreadNetworkStats(mtcp_manager_t mtcp, struct net_stat *ns)
 		if (CONFIG.eths[i].stat_print) {
 			fprintf(stderr, "[CPU%2d] %s flows: %6u, "
 					"RX: %7ld(pps) (err: %5ld), %5.2lf(Gbps), "
-					"TX: %7ld(pps), %5.2lf(Gbps)\n", 
-					mtcp->ctx->cpu, CONFIG.eths[i].dev_name, mtcp->flow_cnt, 
-					ns->rx_packets[i], ns->rx_errors[i], GBPS(ns->rx_bytes[i]), 
+					"TX: %7ld(pps), %5.2lf(Gbps)\n",
+					mtcp->ctx->cpu, CONFIG.eths[i].dev_name, mtcp->flow_cnt,
+					ns->rx_packets[i], ns->rx_errors[i], GBPS(ns->rx_bytes[i]),
 				ns->tx_packets[i], GBPS(ns->tx_bytes[i]));
 		}
 #endif
@@ -218,7 +218,7 @@ PrintThreadNetworkStats(mtcp_manager_t mtcp, struct net_stat *ns)
 }
 /*----------------------------------------------------------------------------*/
 #if ROUND_STAT
-static inline void 
+static inline void
 PrintThreadRoundStats(mtcp_manager_t mtcp, struct run_stat *rs)
 {
 #define ROUND_DIV (1000)
@@ -236,11 +236,11 @@ PrintThreadRoundStats(mtcp_manager_t mtcp, struct run_stat *rs)
 #if NETSTAT_PERTHREAD
 	fprintf(stderr, "[CPU%2d] Rounds: %4ldK, "
 			"rx: %3ldK (try: %4ldK), tx: %3ldK (try: %4ldK), "
-			"ps_select: %4ld (rx: %4ld, tx: %4ld, intr: %3ld)\n", 
-			mtcp->ctx->cpu, rs->rounds / ROUND_DIV, 
-			rs->rounds_rx / ROUND_DIV, rs->rounds_rx_try / ROUND_DIV, 
-			rs->rounds_tx / ROUND_DIV, rs->rounds_tx_try / ROUND_DIV, 
-			rs->rounds_select, 
+			"ps_select: %4ld (rx: %4ld, tx: %4ld, intr: %3ld)\n",
+			mtcp->ctx->cpu, rs->rounds / ROUND_DIV,
+			rs->rounds_rx / ROUND_DIV, rs->rounds_rx_try / ROUND_DIV,
+			rs->rounds_tx / ROUND_DIV, rs->rounds_tx_try / ROUND_DIV,
+			rs->rounds_select,
 			rs->rounds_select_rx, rs->rounds_select_tx, rs->rounds_select_intr);
 #endif
 }
@@ -249,12 +249,12 @@ PrintThreadRoundStats(mtcp_manager_t mtcp, struct run_stat *rs)
 #endif /* NETSTAT */
 /*----------------------------------------------------------------------------*/
 #if EVENT_STAT
-static inline void 
+static inline void
 PrintEventStat(int core, struct mtcp_epoll_stat *stat)
 {
 	fprintf(stderr, "[CPU%2d] calls: %lu, waits: %lu, wakes: %lu, "
-			"issued: %lu, registered: %lu, invalidated: %lu, handled: %lu\n", 
-			core, stat->calls, stat->waits, stat->wakes, 
+			"issued: %lu, registered: %lu, invalidated: %lu, handled: %lu\n",
+			core, stat->calls, stat->waits, stat->wakes,
 			stat->issued, stat->registered, stat->invalidated, stat->handled);
 	memset(stat, 0, sizeof(struct mtcp_epoll_stat));
 }
@@ -311,9 +311,9 @@ PrintNetworkStats(mtcp_manager_t mtcp, uint32_t cur_ts)
 		if (CONFIG.eths[i].stat_print) {
 			fprintf(stderr, "[ ALL ] %s flows: %6u, "
 					"RX: %7ld(pps) (err: %5ld), %5.2lf(Gbps), "
-					"TX: %7ld(pps), %5.2lf(Gbps)\n", CONFIG.eths[i].dev_name, 
-					gflow_cnt, g_nstat.rx_packets[i], g_nstat.rx_errors[i], 
-					GBPS(g_nstat.rx_bytes[i]), g_nstat.tx_packets[i], 
+					"TX: %7ld(pps), %5.2lf(Gbps)\n", CONFIG.eths[i].dev_name,
+					gflow_cnt, g_nstat.rx_packets[i], g_nstat.rx_errors[i],
+					GBPS(g_nstat.rx_bytes[i]), g_nstat.tx_packets[i],
 					GBPS(g_nstat.tx_bytes[i]));
 		}
 	}
@@ -343,10 +343,10 @@ PrintNetworkStats(mtcp_manager_t mtcp, uint32_t cur_ts)
 #if 0
 	fprintf(stderr, "[ ALL ] Rounds: %4ldK, "
 			"rx: %3ldK (try: %4ldK), tx: %3ldK (try: %4ldK), "
-			"ps_select: %4ld (rx: %4ld, tx: %4ld)\n", 
-			g_runstat.rounds / 1000, g_runstat.rounds_rx / 1000, 
-			g_runstat.rounds_rx_try / 1000, g_runstat.rounds_tx / 1000, 
-			g_runstat.rounds_tx_try / 1000, g_runstat.rounds_select, 
+			"ps_select: %4ld (rx: %4ld, tx: %4ld)\n",
+			g_runstat.rounds / 1000, g_runstat.rounds_rx / 1000,
+			g_runstat.rounds_rx_try / 1000, g_runstat.rounds_tx / 1000,
+			g_runstat.rounds_tx_try / 1000, g_runstat.rounds_select,
 			g_runstat.rounds_select_rx, g_runstat.rounds_select_tx);
 #endif
 #endif /* ROUND_STAT */
@@ -364,7 +364,7 @@ PrintNetworkStats(mtcp_manager_t mtcp, uint32_t cur_ts)
 #endif /* NETSTAT */
 /*----------------------------------------------------------------------------*/
 #if BLOCKING_SUPPORT
-static inline void 
+static inline void
 FlushAcceptEvents(mtcp_manager_t mtcp)
 {
 	STAT_COUNT(mtcp->runstat.rounds_accept);
@@ -411,9 +411,9 @@ FlushWriteEvents(mtcp_manager_t mtcp, int thresh)
 	}
 }
 /*----------------------------------------------------------------------------*/
-static inline void 
+static inline void
 FlushReadEvents(mtcp_manager_t mtcp, int thresh)
-{	
+{
 	tcp_stream *walk;
 	tcp_stream *next, *last;
 	int cnt;
@@ -439,7 +439,7 @@ FlushReadEvents(mtcp_manager_t mtcp, int thresh)
 				walk->on_rcv_br_list = FALSE;
 			}
 		}
-		
+
 		if (walk == last)
 			break;
 		walk = next;
@@ -447,7 +447,7 @@ FlushReadEvents(mtcp_manager_t mtcp, int thresh)
 }
 #endif
 /*----------------------------------------------------------------------------*/
-static inline void 
+static inline void
 FlushEpollEvents(mtcp_manager_t mtcp, uint32_t cur_ts)
 {
 	struct mtcp_epoll *ep = mtcp->ep;
@@ -473,10 +473,10 @@ FlushEpollEvents(mtcp_manager_t mtcp, uint32_t cur_ts)
 	}
 
 	/* if there are pending events, wake up user */
-	if (ep->waiting && (ep->usr_queue->num_events > 0 || 
+	if (ep->waiting && (ep->usr_queue->num_events > 0 ||
 				ep->usr_shadow_queue->num_events > 0)) {
 		STAT_COUNT(mtcp->runstat.rounds_epoll);
-		TRACE_EPOLL("Broadcasting events. num: %d, cur_ts: %u, prev_ts: %u\n", 
+		TRACE_EPOLL("Broadcasting events. num: %d, cur_ts: %u, prev_ts: %u\n",
 				ep->usr_queue->num_events, cur_ts, mtcp->ts_last_event);
 		mtcp->ts_last_event = cur_ts;
 		ep->stat.wakes++;
@@ -485,7 +485,7 @@ FlushEpollEvents(mtcp_manager_t mtcp, uint32_t cur_ts)
 	pthread_mutex_unlock(&ep->epoll_lock);
 }
 /*----------------------------------------------------------------------------*/
-static inline void 
+static inline void
 HandleApplicationCalls(mtcp_manager_t mtcp, uint32_t cur_ts)
 {
 	tcp_stream *stream;
@@ -503,7 +503,7 @@ HandleApplicationCalls(mtcp_manager_t mtcp, uint32_t cur_ts)
 		stream->sndvar->on_sendq = FALSE;
 		AddtoSendList(mtcp, stream);
 	}
-	
+
 	/* ack queue handling */
 	while ((stream = StreamDequeue(mtcp->ackq))) {
 		stream->sndvar->on_ackq = FALSE;
@@ -516,7 +516,7 @@ HandleApplicationCalls(mtcp_manager_t mtcp, uint32_t cur_ts)
 	while ((stream = StreamDequeue(mtcp->closeq))) {
 		struct tcp_send_vars *sndvar = stream->sndvar;
 		sndvar->on_closeq = FALSE;
-		
+
 		if (sndvar->sndbuf) {
 			sndvar->fss = sndvar->sndbuf->head_seq + sndvar->sndbuf->len;
 		} else {
@@ -608,7 +608,7 @@ HandleApplicationCalls(mtcp_manager_t mtcp, uint32_t cur_ts)
 	/* reset handling */
 	while ((stream = StreamDequeue(mtcp->resetq))) {
 		stream->sndvar->on_resetq = FALSE;
-		
+
 		if (CONFIG.tcp_timeout > 0)
 			RemoveFromTimeoutList(mtcp, stream);
 
@@ -622,7 +622,7 @@ HandleApplicationCalls(mtcp_manager_t mtcp, uint32_t cur_ts)
 				TRACE_ERROR("Stream already closed.\n");
 			}
 
-		} else if (stream->sndvar->on_control_list || 
+		} else if (stream->sndvar->on_control_list ||
 				stream->sndvar->on_send_list || stream->sndvar->on_ack_list) {
 			/* wait until all the queues are flushed */
 			stream->sndvar->on_resetq_int = TRUE;
@@ -645,8 +645,8 @@ HandleApplicationCalls(mtcp_manager_t mtcp, uint32_t cur_ts)
 	max_cnt = mtcp->resetq_int->count;
 	while (cnt++ < max_cnt) {
 		stream = StreamInternalDequeue(mtcp->resetq_int);
-		
-		if (stream->sndvar->on_control_list || 
+
+		if (stream->sndvar->on_control_list ||
 				stream->sndvar->on_send_list || stream->sndvar->on_ack_list) {
 			/* wait until all the queues are flushed */
 			StreamInternalEnqueue(mtcp->resetq_int, stream);
@@ -673,7 +673,7 @@ HandleApplicationCalls(mtcp_manager_t mtcp, uint32_t cur_ts)
 	mtcp->wakeup_flag = FALSE;
 }
 /*----------------------------------------------------------------------------*/
-static inline void 
+static inline void
 WritePacketsToChunks(mtcp_manager_t mtcp, uint32_t cur_ts)
 {
 	int thresh = CONFIG.max_concurrency;
@@ -710,13 +710,13 @@ DestroyRemainingFlows(mtcp_manager_t mtcp)
 
 	cnt = 0;
 #if 0
-	thread_printf(mtcp, mtcp->log_fp, 
+	thread_printf(mtcp, mtcp->log_fp,
 			"CPU %d: Flushing remaining flows.\n", mtcp->ctx->cpu);
 #endif
 	for (i = 0; i < NUM_BINS; i++) {
 		TAILQ_FOREACH(walk, &ht->ht_table[i], rcvvar->he_link) {
 #ifdef DUMP_STREAM
-			thread_printf(mtcp, mtcp->log_fp, 
+			thread_printf(mtcp, mtcp->log_fp,
 					"CPU %d: Destroying stream %d\n", mtcp->ctx->cpu, walk->id);
 			DumpStream(mtcp, walk);
 #endif
@@ -729,7 +729,7 @@ DestroyRemainingFlows(mtcp_manager_t mtcp)
 }
 #endif
 /*----------------------------------------------------------------------------*/
-static void 
+static void
 InterruptApplication(mtcp_manager_t mtcp)
 {
 	int i;
@@ -753,12 +753,12 @@ InterruptApplication(mtcp_manager_t mtcp)
 			if (!(listener->socket->opts & MTCP_NONBLOCK)) {
 				pthread_cond_signal(&listener->accept_cond);
 			}
-			pthread_mutex_unlock(&listener->accept_lock);			
+			pthread_mutex_unlock(&listener->accept_lock);
 		}
 	}
 }
 /*----------------------------------------------------------------------------*/
-static void 
+static void
 RunMainLoop(struct mtcp_thread_context *ctx)
 {
 	mtcp_manager_t mtcp = ctx->mtcp_manager;
@@ -774,10 +774,10 @@ RunMainLoop(struct mtcp_thread_context *ctx)
 
 	ts = ts_prev = 0;
 	while ((!ctx->done || mtcp->flow_cnt) && !ctx->exit) {
-		
+
 		STAT_COUNT(mtcp->runstat.rounds);
 		recv_cnt = 0;
-			
+
 		gettimeofday(&cur_ts, NULL);
 		ts = TIMEVAL_TO_TS(&cur_ts);
 		mtcp->cur_ts = ts;
@@ -803,7 +803,7 @@ RunMainLoop(struct mtcp_thread_context *ctx)
 
 		/* interaction with application */
 		if (mtcp->flow_cnt > 0) {
-			
+
 			/* check retransmission timeout and timewait expire */
 #if 0
 			thresh = (int)mtcp->flow_cnt / (TS_TO_USEC(PER_STREAM_TCHECK));
@@ -815,7 +815,7 @@ RunMainLoop(struct mtcp_thread_context *ctx)
 #endif
 			thresh = CONFIG.max_concurrency;
 
-			/* Eunyoung, you may fix this later 
+			/* Eunyoung, you may fix this later
 			 * if there is no rcv packet, we will send as much as possible
 			 */
 			if (thresh == -1)
@@ -899,13 +899,13 @@ CreateMTCPSender(int ifidx)
 	return sender;
 }
 /*----------------------------------------------------------------------------*/
-void 
+void
 DestroyMTCPSender(struct mtcp_sender *sender)
 {
 	free(sender);
 }
 /*----------------------------------------------------------------------------*/
-static mtcp_manager_t 
+static mtcp_manager_t
 InitializeMTCPManager(struct mtcp_thread_context* ctx)
 {
 	mtcp_manager_t mtcp;
@@ -950,15 +950,15 @@ InitializeMTCPManager(struct mtcp_thread_context* ctx)
 		CTRACE_ERROR("Failed to allocate tcp flow pool.\n");
 		return NULL;
 	}
-	sprintf(pool_name, "rv_pool_%d", ctx->cpu);	
-	mtcp->rv_pool = MPCreate(pool_name, sizeof(struct tcp_recv_vars), 
+	sprintf(pool_name, "rv_pool_%d", ctx->cpu);
+	mtcp->rv_pool = MPCreate(pool_name, sizeof(struct tcp_recv_vars),
 			sizeof(struct tcp_recv_vars) * CONFIG.max_concurrency);
 	if (!mtcp->rv_pool) {
 		CTRACE_ERROR("Failed to allocate tcp recv variable pool.\n");
 		return NULL;
 	}
 	sprintf(pool_name, "sv_pool_%d", ctx->cpu);
-	mtcp->sv_pool = MPCreate(pool_name, sizeof(struct tcp_send_vars), 
+	mtcp->sv_pool = MPCreate(pool_name, sizeof(struct tcp_send_vars),
 			sizeof(struct tcp_send_vars) * CONFIG.max_concurrency);
 	if (!mtcp->sv_pool) {
 		CTRACE_ERROR("Failed to allocate tcp send variable pool.\n");
@@ -971,18 +971,18 @@ InitializeMTCPManager(struct mtcp_thread_context* ctx)
 		CTRACE_ERROR("Failed to allocate tcp flow pool.\n");
 		return NULL;
 	}
-	mtcp->rv_pool = MPCreate(sizeof(struct tcp_recv_vars), 
+	mtcp->rv_pool = MPCreate(sizeof(struct tcp_recv_vars),
 			sizeof(struct tcp_recv_vars) * CONFIG.max_concurrency);
 	if (!mtcp->rv_pool) {
 		CTRACE_ERROR("Failed to allocate tcp recv variable pool.\n");
 		return NULL;
 	}
-	mtcp->sv_pool = MPCreate(sizeof(struct tcp_send_vars), 
+	mtcp->sv_pool = MPCreate(sizeof(struct tcp_send_vars),
 			sizeof(struct tcp_send_vars) * CONFIG.max_concurrency);
 	if (!mtcp->sv_pool) {
 		CTRACE_ERROR("Failed to allocate tcp send variable pool.\n");
 		return NULL;
-	}	
+	}
 #endif
 	mtcp->rbm_snd = SBManagerCreate(mtcp, CONFIG.sndbuf_size, CONFIG.max_num_buffers);
 	if (!mtcp->rbm_snd) {
@@ -1024,7 +1024,7 @@ InitializeMTCPManager(struct mtcp_thread_context* ctx)
 	}
 	mtcp->sp_fd = g_logctx[ctx->cpu]->pair_sp_fd;
 	mtcp->logger = g_logctx[ctx->cpu];
-	
+
 	mtcp->connectq = CreateStreamQueue(BACKLOG_SIZE);
 	if (!mtcp->connectq) {
 		CTRACE_ERROR("Failed to create connect queue.\n");
@@ -1078,7 +1078,7 @@ InitializeMTCPManager(struct mtcp_thread_context* ctx)
 			return NULL;
 		}
 	}
-		
+
 	mtcp->rto_store = InitRTOHashstore();
 	TAILQ_INIT(&mtcp->timewait_list);
 	TAILQ_INIT(&mtcp->timeout_list);
@@ -1198,7 +1198,7 @@ MTCPRunThread(void *arg)
 		perror("pthread_mutex_init of ctx->flow_pool_lock\n");
 		exit(-1);
 	}
-	
+
 	if (pthread_mutex_init(&ctx->socket_pool_lock, NULL)) {
 		perror("pthread_mutex_init of ctx->socket_pool_lock\n");
 		exit(-1);
@@ -1238,7 +1238,7 @@ MTCPRunThread(void *arg)
 	TRACE_DBG("CPU %d: initialization finished.\n", cpu);
 
 	fprintf(stderr, "CPU %d: initialization finished.\n", cpu);
-	
+
 	sem_post(&g_init_sem[ctx->cpu]);
 
 	/* start the main loop */
@@ -1253,9 +1253,9 @@ MTCPRunThread(void *arg)
 	DestroyHashtable(g_mtcp[cpu]->tcp_sid_table);
 #endif
 	DestroyHashtable(g_mtcp[cpu]->listeners);
-	
+
 	TRACE_DBG("MTCP thread %d finished.\n", ctx->cpu);
-	
+
 	return 0;
 }
 /*----------------------------------------------------------------------------*/
@@ -1267,7 +1267,7 @@ int MTCPDPDKRunThread(void *arg)
 }
 #endif
 /*----------------------------------------------------------------------------*/
-mctx_t 
+mctx_t
 mtcp_create_context(int cpu)
 {
 	mctx_t mctx;
@@ -1313,7 +1313,7 @@ mtcp_create_context(int cpu)
 #if defined (PKTDUMP) || (DBGMSG) || (DBGFUNC) || \
 	(STREAM) || (STATE) || (STAT) || (APP) || \
 	(EPOLL) || (DUMP_STREAM)
-	if (pthread_create(&log_thread[cpu], 
+	if (pthread_create(&log_thread[cpu],
 				NULL, ThreadLogMain, (void *)g_logctx[cpu])) {
 		perror("pthread_create");
 		TRACE_ERROR("Failed to create log thread\n");
@@ -1327,12 +1327,12 @@ mtcp_create_context(int cpu)
 	if (current_iomodule_func == &dpdk_module_func) {
 		int master;
 		master = rte_get_master_lcore();
-		
+
 		if (master == whichCoreID(cpu)) {
 			lcore_config[master].ret = 0;
 			lcore_config[master].state = FINISHED;
-			
-			if (pthread_create(&g_thread[cpu], 
+
+			if (pthread_create(&g_thread[cpu],
 					   NULL, MTCPRunThread, (void *)mctx) != 0) {
 				TRACE_ERROR("pthread_create of mtcp thread failed!\n");
 				return NULL;
@@ -1342,7 +1342,7 @@ mtcp_create_context(int cpu)
 	} else
 #endif
 		{
-			if (pthread_create(&g_thread[cpu], 
+			if (pthread_create(&g_thread[cpu],
 					   NULL, MTCPRunThread, (void *)mctx) != 0) {
 				TRACE_ERROR("pthread_create of mtcp thread failed!\n");
 				return NULL;
@@ -1371,7 +1371,7 @@ mtcp_destroy_context(mctx_t mctx)
 	free(mctx);
 }
 /*----------------------------------------------------------------------------*/
-void 
+void
 mtcp_free_context(mctx_t mctx)
 {
 	struct mtcp_thread_context *ctx = g_pctx[mctx->cpu];
@@ -1382,14 +1382,14 @@ mtcp_free_context(mctx_t mctx)
 	if (g_pctx[mctx->cpu] == NULL) return;
 
 	flush_log_data(mtcp);
-	
+
 	TRACE_DBG("CPU %d: mtcp_destroy_context()\n", mctx->cpu);
 
 	/* close all stream sockets that are still open */
 	if (!ctx->exit) {
 		for (i = 0; i < CONFIG.max_concurrency; i++) {
 			if (mtcp->smap[i].socktype == MTCP_SOCK_STREAM) {
-				TRACE_DBG("Closing remaining socket %d (%s)\n", 
+				TRACE_DBG("Closing remaining socket %d (%s)\n",
 						i, TCPStateToString(mtcp->smap[i].stream));
 #ifdef DUMP_STREAM
 				DumpStream(mtcp, mtcp->smap[i].stream);
@@ -1473,7 +1473,7 @@ mtcp_free_context(mctx_t mctx)
 	MPDestroy(mtcp->rv_pool);
 	MPDestroy(mtcp->sv_pool);
 	MPDestroy(mtcp->flow_pool);
-	
+
 	if (mtcp->ap) {
 		DestroyAddressPool(mtcp->ap);
 		mtcp->ap = NULL;
@@ -1496,7 +1496,7 @@ mtcp_free_context(mctx_t mctx)
 	g_pctx[mctx->cpu] = NULL;
 }
 /*----------------------------------------------------------------------------*/
-mtcp_sighandler_t 
+mtcp_sighandler_t
 mtcp_register_signal(int signum, mtcp_sighandler_t handler)
 {
 	mtcp_sighandler_t prev;
@@ -1514,7 +1514,7 @@ mtcp_register_signal(int signum, mtcp_sighandler_t handler)
 	return prev;
 }
 /*----------------------------------------------------------------------------*/
-int 
+int
 mtcp_getconf(struct mtcp_conf *conf)
 {
 	if (!conf)
@@ -1533,7 +1533,7 @@ mtcp_getconf(struct mtcp_conf *conf)
 	return 0;
 }
 /*----------------------------------------------------------------------------*/
-int 
+int
 mtcp_setconf(const struct mtcp_conf *conf)
 {
 	if (!conf)
@@ -1562,7 +1562,7 @@ mtcp_setconf(const struct mtcp_conf *conf)
 }
 
 /*----------------------------------------------------------------------------*/
-int 
+int
 mtcp_init(const char *config_file)
 {
 	int i;
@@ -1571,7 +1571,7 @@ mtcp_init(const char *config_file)
 	/* getting cpu and NIC */
 	/* set to max cpus only if user has not arbitrarily set it to lower # */
 	num_cpus = (CONFIG.num_cores == 0) ? GetNumCPUs() : CONFIG.num_cores;
-			
+
 	assert(num_cpus >= 1);
 
 	if (num_cpus > MAX_CPUS) {
@@ -1612,7 +1612,7 @@ mtcp_init(const char *config_file)
 			return -1;
 		}
 	}
-	
+
 	PrintInterfaceInfo();
 
 	ret = SetRoutingTable();
@@ -1641,7 +1641,7 @@ mtcp_init(const char *config_file)
 	return 0;
 }
 /*----------------------------------------------------------------------------*/
-void 
+void
 mtcp_destroy()
 {
 	int i;

@@ -23,7 +23,7 @@ flush_log_data(mtcp_manager_t mtcp)
 }
 /*----------------------------------------------------------------------------*/
 void
-thread_printf(mtcp_manager_t mtcp, FILE* f_idx, const char* _Format, ...) 
+thread_printf(mtcp_manager_t mtcp, FILE* f_idx, const char* _Format, ...)
 {
 	va_list argptr;
 	va_start(argptr, _Format);
@@ -51,7 +51,7 @@ thread_printf(mtcp_manager_t mtcp, FILE* f_idx, const char* _Format, ...)
 		wbuf->fid = f_idx;
 		mtcp->w_buffer = wbuf;
 	}
-	
+
 	len = vsnprintf(wbuf->buff + wbuf->buff_len, PRINT_LIMIT, _Format, argptr);
 	wbuf->buff_len += len;
 	pthread_mutex_unlock(&mtcp->logger->mutex);
@@ -117,7 +117,7 @@ DumpPacket(mtcp_manager_t mtcp, char *buf, int len, char *step, int ifindex)
 
 	if (ip_fast_csum(iph, iph->ihl)) {
 		__sum16 org_csum, correct_csum;
-		
+
 		org_csum = iph->check;
 		iph->check = 0;
 		correct_csum = ip_fast_csum(iph, iph->ihl);
@@ -129,7 +129,7 @@ DumpPacket(mtcp_manager_t mtcp, char *buf, int len, char *step, int ifindex)
 	switch (iph->protocol) {
 	case IPPROTO_TCP:
 		thread_printf(mtcp, mtcp->log_fp, "TCP ");
-		
+
 		if (tcph->syn)
 			thread_printf(mtcp, mtcp->log_fp, "S ");
 		if (tcph->fin)
@@ -187,7 +187,7 @@ DumpIPPacket(mtcp_manager_t mtcp, const struct iphdr *iph, int len)
 	switch (iph->protocol) {
 	case IPPROTO_TCP:
 		thread_printf(mtcp, mtcp->log_fp, "TCP ");
-		
+
 		if (tcph->syn)
 			thread_printf(mtcp, mtcp->log_fp, "S ");
 		if (tcph->fin)
@@ -245,7 +245,7 @@ DumpIPPacketToFile(FILE *fout, const struct iphdr *iph, int len)
 	switch (iph->protocol) {
 	case IPPROTO_TCP:
 		fprintf(fout, "TCP ");
-		
+
 		if (tcph->syn)
 			fprintf(fout, "S ");
 		if (tcph->fin)

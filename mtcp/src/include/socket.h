@@ -8,7 +8,7 @@
 enum socket_opts
 {
 	MTCP_NONBLOCK		= 0x01,
-	MTCP_ADDR_BIND		= 0x02, 
+	MTCP_ADDR_BIND		= 0x02,
 };
 /*----------------------------------------------------------------------------*/
 struct socket_map
@@ -36,13 +36,13 @@ struct socket_map
 /*----------------------------------------------------------------------------*/
 typedef struct socket_map * socket_map_t;
 /*----------------------------------------------------------------------------*/
-socket_map_t 
+socket_map_t
 AllocateSocket(mctx_t mctx, int socktype, int need_lock);
 /*----------------------------------------------------------------------------*/
-void 
-FreeSocket(mctx_t mctx, int sockid, int need_lock); 
+void
+FreeSocket(mctx_t mctx, int sockid, int need_lock);
 /*----------------------------------------------------------------------------*/
-socket_map_t 
+socket_map_t
 GetSocket(mctx_t mctx, int sockid);
 /*----------------------------------------------------------------------------*/
 struct tcp_listener
@@ -52,7 +52,7 @@ struct tcp_listener
 
 	int backlog;
 	stream_queue_t acceptq;
-	
+
 	pthread_mutex_t accept_lock;
 	pthread_cond_t accept_cond;
 

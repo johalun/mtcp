@@ -52,7 +52,7 @@ psio_init_handle(struct mtcp_thread_context *ctxt)
 			    "Can't allocate memory\n");
 		exit(EXIT_FAILURE);
 	}
-	
+
 	ppc = (struct psio_private_context *)ctxt->io_private_context;
 	if (ps_init_handle(&ppc->handle)) {
 		perror("ps_init_handle");
@@ -75,9 +75,9 @@ psio_init_handle(struct mtcp_thread_context *ctxt)
 			exit(EXIT_FAILURE);
 		}
 	}
-	
+
 	gettimeofday(&cur_ts, NULL);
-	
+
 	/* initialize PSIO parameters */
 	ppc->chunk.recv_blocking = 0;
 	ppc->event.timeout = PS_SELECT_TIMEOUT;
@@ -99,7 +99,7 @@ psio_link_devices(struct mtcp_thread_context *ctxt)
 	struct psio_private_context *ppc;
 	int ret;
 	int i, working;
-	
+
 	ppc = (struct psio_private_context *)ctxt->io_private_context;
 	working = -1;
 
@@ -107,17 +107,17 @@ psio_link_devices(struct mtcp_thread_context *ctxt)
 	for (i = 0 ; i < num_devices_attached ; i++) {
 		struct ps_queue queue;
 		queue.ifindex = devices_attached[i];
-		
+
 		if (devices[devices_attached[i]].num_rx_queues <= ctxt->cpu) {
 			continue;
 		}
-		
+
 		working = 0;
 		queue.ifindex = devices_attached[i];
 		queue.qidx = ctxt->cpu;
-		
+
 #if 0
-		TRACE_DBG("attaching RX queue xge%d:%d to CPU%d\n", 
+		TRACE_DBG("attaching RX queue xge%d:%d to CPU%d\n",
 			  queue.ifindex, queue.qidx, mtcp->ctxt->cpu);
 #endif
 		ret = ps_attach_rx_device(&ppc->handle, &queue);
@@ -160,21 +160,21 @@ psio_flush_pkts(struct mtcp_thread_context *ctx, int nif)
 	/* if chunk (for writing) is not there... then return */
 	if (!c_buf)
 		return -1;
-	
+
 	to_send_cnt = c_buf->cnt;
 	if (to_send_cnt > 0) {
 		STAT_COUNT(mtcp->runstat.rounds_tx_try);
 		start_idx = c_buf->next_to_send;
 		send_cnt = ps_send_chunk_buf(&ppc->handle, c_buf);
-		
+
 		for (i = 0; i < send_cnt; i++) {
 #ifdef NETSTAT
 			mtcp->nstat.tx_bytes[nif] += c_buf->info[start_idx].len + ETHER_OVR;
 #endif
 #if PKTDUMP
-			DumpPacket(mtcp, c_buf->buf + c_buf->info[start_idx].offset, 
+			DumpPacket(mtcp, c_buf->buf + c_buf->info[start_idx].offset,
 				   c_buf->info[start_idx].len, "OUT", nif);
-			
+
 #endif
 			start_idx = (start_idx + 1) % ENTRY_CNT;
 		}
@@ -186,10 +186,10 @@ psio_flush_pkts(struct mtcp_thread_context *ctx, int nif)
 			mtcp->nstat.tx_packets[nif] += send_cnt;
 #endif
 		}
-		
+
 		return send_cnt;
 	}
-	
+
 	return 0;
 }
 /*----------------------------------------------------------------------------*/
@@ -213,7 +213,7 @@ psio_send_pkts(struct mtcp_thread_context *ctxt, int nif)
 	while ((prev_cnt = ppc->w_chunk_buf[nif].cnt) > 0) {
 		ret = psio_flush_pkts(ctxt, nif);
 		if (ret <= 0) {
-			if (ret < 0) 
+			if (ret < 0)
 				TRACE_ERROR("ps_send_chunk_buf failed to send.\n");
 			NID_SET(nif, ppc->event.tx_nids);
 			NID_CLR(nif, ppc->tx_avail);
@@ -227,7 +227,7 @@ psio_send_pkts(struct mtcp_thread_context *ctxt, int nif)
 			STAT_COUNT(mtcp->runstat.rounds_tx);
 		}
 	}
-	
+
 	return 0;
 }
 /*----------------------------------------------------------------------------*/
@@ -249,12 +249,12 @@ psio_recv_pkts(struct mtcp_thread_context *ctxt, int ifidx)
 {
 	int ret, no_rx_packet;
 	struct psio_private_context *ppc;
-		
+
 	ppc = (struct psio_private_context *) ctxt->io_private_context;
 	no_rx_packet = 0;
-	
+
 	ppc->chunk.cnt = PS_CHUNK_SIZE;
-	
+
 	ret = ps_recv_chunk_ifidx(&ppc->handle, &ppc->chunk, ifidx);
 	if (ret < 0) {
 		if (errno != EAGAIN) {
@@ -267,7 +267,7 @@ psio_recv_pkts(struct mtcp_thread_context *ctxt, int ifidx)
 		NID_SET(ifidx, ppc->event.rx_nids);
 		no_rx_packet = 1;
 	}
-	
+
 	if (!no_rx_packet)
 		NID_SET(ifidx, ppc->rx_avail);
 
@@ -280,7 +280,7 @@ psio_get_rptr(struct mtcp_thread_context *ctxt, int ifidx, int index, uint16_t *
 	struct psio_private_context *ppc;
 	uint8_t *pktbuf;
 
-	ppc = (struct psio_private_context *) ctxt->io_private_context;	
+	ppc = (struct psio_private_context *) ctxt->io_private_context;
 	pktbuf = (uint8_t *)(ppc->chunk.buf + ppc->chunk.info[index].offset);
 	*len = ppc->chunk.info[index].len;
 
@@ -295,35 +295,35 @@ psio_select(struct mtcp_thread_context *ctxt)
 	mtcp_manager_t mtcp;
 	struct timeval cur_ts;
 	int i, ret;
-	
-	ppc = (struct psio_private_context *) ctxt->io_private_context;	
+
+	ppc = (struct psio_private_context *) ctxt->io_private_context;
 	mtcp = ctxt->mtcp_manager;
 	gettimeofday(&cur_ts, NULL);
-	
+
 
 	if (!ppc->rx_avail || ppc->event.tx_nids) {
 		for (i = 0; i < CONFIG.eths_num; i++) {
 			if (ppc->w_chunk_buf[i].cnt > 0)
 				NID_SET(i, ppc->event.tx_nids);
-			if (mtcp->n_sender[i]->control_list_cnt > 0 || 
-			    mtcp->n_sender[i]->send_list_cnt > 0 || 
-			    mtcp->n_sender[i]->ack_list_cnt > 0) { 
-				if (cur_ts.tv_sec > ppc->last_tx_set[i].tv_sec || 
+			if (mtcp->n_sender[i]->control_list_cnt > 0 ||
+			    mtcp->n_sender[i]->send_list_cnt > 0 ||
+			    mtcp->n_sender[i]->ack_list_cnt > 0) {
+				if (cur_ts.tv_sec > ppc->last_tx_set[i].tv_sec ||
 				    cur_ts.tv_usec > ppc->last_tx_set[i].tv_usec) {
 					NID_SET(i, ppc->event.tx_nids);
 					ppc->last_tx_set[i] = cur_ts;
 				}
-			}    
+			}
 		}
-		
-		TRACE_SELECT("BEFORE: rx_avail: %d, tx_avail: %d, event.rx_nids: %0x, event.tx_nids: %0x\n", 
+
+		TRACE_SELECT("BEFORE: rx_avail: %d, tx_avail: %d, event.rx_nids: %0x, event.tx_nids: %0x\n",
 			     ppc->rx_avail, ppc->tx_avail, ppc->event.rx_nids, ppc->event.tx_nids);
 		mtcp->is_sleeping = TRUE;
 		ret = ps_select(&ppc->handle, &ppc->event);
 		mtcp->is_sleeping = FALSE;
 #if TIME_STAT
 		gettimeofday(&select_ts, NULL);
-		UpdateStatCounter(&mtcp->rtstat.select, 
+		UpdateStatCounter(&mtcp->rtstat.select,
 				  TimeDiffUs(&select_ts, &xmit_ts));
 #endif
 		if (ret < 0) {
@@ -335,7 +335,7 @@ psio_select(struct mtcp_thread_context *ctxt)
 				STAT_COUNT(mtcp->runstat.rounds_select_intr);
 			}
 		} else {
-			TRACE_SELECT("ps_select(): event.rx_nids: %0x, event.tx_nids: %0x\n", 
+			TRACE_SELECT("ps_select(): event.rx_nids: %0x, event.tx_nids: %0x\n",
 				     ppc->event.rx_nids, ppc->event.tx_nids);
 			if (ppc->event.rx_nids != 0) {
 				STAT_COUNT(mtcp->runstat.rounds_select_rx);
@@ -349,7 +349,7 @@ psio_select(struct mtcp_thread_context *ctxt)
 				STAT_COUNT(mtcp->runstat.rounds_select_tx);
 			}
 		}
-		TRACE_SELECT("AFTER: rx_avail: %d, tx_avail: %d, event.rx_nids: %d, event.tx_nids: %d\n", 
+		TRACE_SELECT("AFTER: rx_avail: %d, tx_avail: %d, event.rx_nids: %d, event.tx_nids: %d\n",
 			     ppc->rx_avail, ppc->tx_avail, ppc->event.rx_nids, ppc->event.tx_nids);
 		STAT_COUNT(mtcp->runstat.rounds_select);
 	}
@@ -369,7 +369,7 @@ psio_destroy_handle(struct mtcp_thread_context *ctxt)
 {
 	struct psio_private_context *ppc;
 
-	ppc = (struct psio_private_context *) ctxt->io_private_context;	
+	ppc = (struct psio_private_context *) ctxt->io_private_context;
 
 	/* free it all up */
 	free(ppc);

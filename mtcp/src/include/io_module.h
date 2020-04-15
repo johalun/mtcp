@@ -11,14 +11,14 @@
 #endif
 /*----------------------------------------------------------------------------*/
 /**
- * Declaration to soothe down the warnings 
+ * Declaration to soothe down the warnings
  */
 struct mtcp_thread_context;
 /**
  * io_module_funcs - contains template for the various 10Gbps pkt I/O
  *                 - libraries that can be adopted.
  *
- *		   load_module()    : Used to set system-wide I/O module 
+ *		   load_module()    : Used to set system-wide I/O module
  *				      initialization.
  *
  *                 init_handle()    : Used to initialize the driver library
@@ -31,31 +31,31 @@ struct mtcp_thread_context;
  *		   release_pkt()    : release the packet if mTCP does not need
  *				      to process it (e.g. non-IPv4, non-TCP pkts).
  *
- *		   get_wptr()	    : retrieve the next empty pkt buffer for the 
+ *		   get_wptr()	    : retrieve the next empty pkt buffer for the
  * 				      application for packet writing. Returns
  *				      ptr to pkt buffer.
  *
- *		   send_pkts()	    : transmit batch of packets via interface 
- * 				      idx (=nif). 
+ *		   send_pkts()	    : transmit batch of packets via interface
+ * 				      idx (=nif).
  *				      Returns 0 on success; -1 on failure
  *
  *		   get_rptr()	    : retrieve next pkt for application for
  *				      packet read.
  *				      Returns ptr to pkt buffer.
- *			       
- *		   recv_pkts()	    : recieve batch of packets from the interface, 
+ *
+ *		   recv_pkts()	    : recieve batch of packets from the interface,
  *				      ifidx.
  *				      Returns no. of packets that are read from
  *				      the iface.
  *
  *		   select()	    : for blocking I/O
  *
- *		   destroy_handle() : free up resources allocated during 
- * 				      init_handle(). Normally called during 
+ *		   destroy_handle() : free up resources allocated during
+ * 				      init_handle(). Normally called during
  *				      process termination.
  *
  *                 dev_ioctl()      : contains submodules for select drivers
- *		   
+ *
  */
 typedef struct io_module_func {
 	void	  (*load_module)(void);

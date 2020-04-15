@@ -19,12 +19,12 @@ extern "C" {
 
 enum socket_type
 {
-	MTCP_SOCK_UNUSED, 
-	MTCP_SOCK_STREAM, 
-	MTCP_SOCK_PROXY, 
-	MTCP_SOCK_LISTENER, 
-	MTCP_SOCK_EPOLL, 
-	MTCP_SOCK_PIPE, 
+	MTCP_SOCK_UNUSED,
+	MTCP_SOCK_STREAM,
+	MTCP_SOCK_PROXY,
+	MTCP_SOCK_LISTENER,
+	MTCP_SOCK_EPOLL,
+	MTCP_SOCK_PIPE,
 };
 
 struct mtcp_conf
@@ -42,73 +42,73 @@ struct mtcp_conf
 
 typedef struct mtcp_context *mctx_t;
 
-int 
+int
 mtcp_init(const char *config_file);
 
-void 
+void
 mtcp_destroy();
 
-int 
+int
 mtcp_getconf(struct mtcp_conf *conf);
 
-int 
+int
 mtcp_setconf(const struct mtcp_conf *conf);
 
-int 
+int
 mtcp_core_affinitize(int cpu);
 
-mctx_t 
+mctx_t
 mtcp_create_context(int cpu);
 
-void 
+void
 mtcp_destroy_context(mctx_t mctx);
 
 typedef void (*mtcp_sighandler_t)(int);
 
-mtcp_sighandler_t 
+mtcp_sighandler_t
 mtcp_register_signal(int signum, mtcp_sighandler_t handler);
 
-int 
+int
 mtcp_pipe(mctx_t mctx, int pipeid[2]);
 
-int 
-mtcp_getsockopt(mctx_t mctx, int sockid, int level, 
+int
+mtcp_getsockopt(mctx_t mctx, int sockid, int level,
 		int optname, void *optval, socklen_t *optlen);
 
-int 
-mtcp_setsockopt(mctx_t mctx, int sockid, int level, 
+int
+mtcp_setsockopt(mctx_t mctx, int sockid, int level,
 		int optname, const void *optval, socklen_t optlen);
 
-int 
+int
 mtcp_setsock_nonblock(mctx_t mctx, int sockid);
 
-/* mtcp_socket_ioctl: similar to ioctl, 
+/* mtcp_socket_ioctl: similar to ioctl,
    but only FIONREAD is supported currently */
-int 
+int
 mtcp_socket_ioctl(mctx_t mctx, int sockid, int request, void *argp);
 
-int 
+int
 mtcp_socket(mctx_t mctx, int domain, int type, int protocol);
 
-int 
-mtcp_bind(mctx_t mctx, int sockid, 
+int
+mtcp_bind(mctx_t mctx, int sockid,
 		const struct sockaddr *addr, socklen_t addrlen);
 
-int 
+int
 mtcp_listen(mctx_t mctx, int sockid, int backlog);
 
-int 
+int
 mtcp_accept(mctx_t mctx, int sockid, struct sockaddr *addr, socklen_t *addrlen);
 
-int 
-mtcp_init_rss(mctx_t mctx, in_addr_t saddr_base, int num_addr, 
+int
+mtcp_init_rss(mctx_t mctx, in_addr_t saddr_base, int num_addr,
 		in_addr_t daddr, in_addr_t dport);
 
-int 
-mtcp_connect(mctx_t mctx, int sockid, 
+int
+mtcp_connect(mctx_t mctx, int sockid,
 		const struct sockaddr *addr, socklen_t addrlen);
 
-int 
+int
 mtcp_close(mctx_t mctx, int sockid);
 
 /** Returns the current address to which the socket sockfd is bound
@@ -119,7 +119,7 @@ mtcp_close(mctx_t mctx, int sockid);
  */
 int
 mtcp_getsockname(mctx_t mctx, int sock, struct sockaddr *addr, socklen_t *addrlen);
-	
+
 int
 mtcp_getpeername(mctx_t mctx, int sockid, struct sockaddr *addr,
 		 socklen_t *addrlen);

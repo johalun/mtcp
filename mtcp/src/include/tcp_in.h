@@ -25,7 +25,7 @@
 #define TCP_OPT_FLAG_WSCALE			0x04	// 0000 0100
 #define TCP_OPT_FLAG_SACK_PERMIT	0x08	// 0000 1000
 #define TCP_OPT_FLAG_SACK			0x10	// 0001 0000
-#define TCP_OPT_FLAG_TIMESTAMP		0x20	// 0010 0000	
+#define TCP_OPT_FLAG_TIMESTAMP		0x20	// 0010 0000
 
 #define TCP_OPT_MSS_LEN			4
 #define TCP_OPT_WSCALE_LEN		3
@@ -74,16 +74,16 @@
 
 enum tcp_state
 {
-	TCP_ST_CLOSED		= 0, 
-	TCP_ST_LISTEN		= 1, 
-	TCP_ST_SYN_SENT		= 2, 
-	TCP_ST_SYN_RCVD		= 3,  
-	TCP_ST_ESTABLISHED	= 4, 
-	TCP_ST_FIN_WAIT_1	= 5, 
-	TCP_ST_FIN_WAIT_2	= 6, 
-	TCP_ST_CLOSE_WAIT	= 7, 
-	TCP_ST_CLOSING		= 8, 
-	TCP_ST_LAST_ACK		= 9, 
+	TCP_ST_CLOSED		= 0,
+	TCP_ST_LISTEN		= 1,
+	TCP_ST_SYN_SENT		= 2,
+	TCP_ST_SYN_RCVD		= 3,
+	TCP_ST_ESTABLISHED	= 4,
+	TCP_ST_FIN_WAIT_1	= 5,
+	TCP_ST_FIN_WAIT_2	= 6,
+	TCP_ST_CLOSE_WAIT	= 7,
+	TCP_ST_CLOSING		= 8,
+	TCP_ST_LAST_ACK		= 9,
 	TCP_ST_TIME_WAIT	= 10
 };
 
@@ -93,37 +93,37 @@ enum tcp_option
 	TCP_OPT_NOP			= 1,
 	TCP_OPT_MSS			= 2,
 	TCP_OPT_WSCALE		= 3,
-	TCP_OPT_SACK_PERMIT	= 4, 
+	TCP_OPT_SACK_PERMIT	= 4,
 	TCP_OPT_SACK		= 5,
 	TCP_OPT_TIMESTAMP	= 8
 };
 
 enum tcp_close_reason
 {
-	TCP_NOT_CLOSED		= 0, 
-	TCP_ACTIVE_CLOSE	= 1, 
-	TCP_PASSIVE_CLOSE	= 2, 
-	TCP_CONN_FAIL		= 3, 
-	TCP_CONN_LOST		= 4, 
-	TCP_RESET			= 5, 
-	TCP_NO_MEM			= 6, 
-	TCP_NOT_ACCEPTED	= 7, 
+	TCP_NOT_CLOSED		= 0,
+	TCP_ACTIVE_CLOSE	= 1,
+	TCP_PASSIVE_CLOSE	= 2,
+	TCP_CONN_FAIL		= 3,
+	TCP_CONN_LOST		= 4,
+	TCP_RESET			= 5,
+	TCP_NO_MEM			= 6,
+	TCP_NOT_ACCEPTED	= 7,
 	TCP_TIMEDOUT		= 8
 };
 
-void 
-ParseTCPOptions(tcp_stream *cur_stream, 
+void
+ParseTCPOptions(tcp_stream *cur_stream,
 		uint32_t cur_ts, uint8_t *tcpopt, int len);
 
-extern inline int 
-ProcessTCPUplink(mtcp_manager_t mtcp, uint32_t cur_ts, tcp_stream *cur_stream, 
-		const struct tcphdr *tcph, uint32_t seq, uint32_t ack_seq, 
+extern inline int
+ProcessTCPUplink(mtcp_manager_t mtcp, uint32_t cur_ts, tcp_stream *cur_stream,
+		const struct tcphdr *tcph, uint32_t seq, uint32_t ack_seq,
 		uint8_t *payload, int payloadlen, uint32_t window);
 
 int
 ProcessTCPPacket(struct mtcp_manager *mtcp, uint32_t cur_ts, const int ifidx,
 					const struct iphdr* iph, int ip_len);
-uint16_t 
+uint16_t
 TCPCalcChecksum(uint16_t *buf, uint16_t len, uint32_t saddr, uint32_t daddr);
 
 #endif /* TCP_IN_H */

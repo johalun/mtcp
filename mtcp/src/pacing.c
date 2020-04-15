@@ -71,7 +71,7 @@ NewPacketPacer()
 		return NULL;
 	pacer->rate_bps = 0;
 	pacer->extra_packets = 1;
-	pacer->next_send_time = 0; 
+	pacer->next_send_time = 0;
 	return pacer;
 }
 /*----------------------------------------------------------------------------*/

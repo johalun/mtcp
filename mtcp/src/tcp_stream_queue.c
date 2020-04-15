@@ -1,4 +1,4 @@
-/* 
+/*
  * TCP stream queue - tcp_stream_queue.c/h
  *
  * EunYoung Jeong
@@ -41,7 +41,7 @@ struct stream_queue
 	struct tcp_stream * volatile * _q;
 };
 /*----------------------------------------------------------------------------*/
-stream_queue_int * 
+stream_queue_int *
 CreateInternalStreamQueue(int size)
 {
 	stream_queue_int *sq;
@@ -64,12 +64,12 @@ CreateInternalStreamQueue(int size)
 	return sq;
 }
 /*----------------------------------------------------------------------------*/
-void 
+void
 DestroyInternalStreamQueue(stream_queue_int *sq)
 {
 	if (!sq)
 		return;
-	
+
 	if (sq->array) {
 		free(sq->array);
 		sq->array = NULL;
@@ -78,7 +78,7 @@ DestroyInternalStreamQueue(stream_queue_int *sq)
 	free(sq);
 }
 /*----------------------------------------------------------------------------*/
-int 
+int
 StreamInternalEnqueue(stream_queue_int *sq, struct tcp_stream *stream)
 {
 	if (sq->count >= sq->size) {
@@ -118,31 +118,31 @@ StreamInternalDequeue(stream_queue_int *sq)
 	return stream;
 }
 /*---------------------------------------------------------------------------*/
-static inline index_type 
+static inline index_type
 NextIndex(stream_queue_t sq, index_type i)
 {
 	return (i != sq->_capacity ? i + 1: 0);
 }
 /*---------------------------------------------------------------------------*/
-static inline index_type 
+static inline index_type
 PrevIndex(stream_queue_t sq, index_type i)
 {
 	return (i != 0 ? i - 1: sq->_capacity);
 }
 /*---------------------------------------------------------------------------*/
-int 
+int
 StreamQueueIsEmpty(stream_queue_t sq)
 {
 	return (sq->_head == sq->_tail);
 }
 /*---------------------------------------------------------------------------*/
-static inline void 
+static inline void
 StreamMemoryBarrier(tcp_stream * volatile stream, volatile index_type index)
 {
 	__asm__ volatile("" : : "m" (stream), "m" (index));
 }
 /*---------------------------------------------------------------------------*/
-stream_queue_t 
+stream_queue_t
 CreateStreamQueue(int capacity)
 {
 	stream_queue_t sq;
@@ -163,7 +163,7 @@ CreateStreamQueue(int capacity)
 	return sq;
 }
 /*---------------------------------------------------------------------------*/
-void 
+void
 DestroyStreamQueue(stream_queue_t sq)
 {
 	if (!sq)
@@ -177,7 +177,7 @@ DestroyStreamQueue(stream_queue_t sq)
 	free(sq);
 }
 /*---------------------------------------------------------------------------*/
-int 
+int
 StreamEnqueue(stream_queue_t sq, tcp_stream *stream)
 {
 	index_type h = sq->_head;

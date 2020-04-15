@@ -3,16 +3,16 @@
 
 #include <mtcp_api.h>
 
-int 
+int
 PipeRead(mctx_t mctx, int pipeid, char *buf, int len);
 
-int 
+int
 PipeWrite(mctx_t mctx, int pipeid, const char *buf, int len);
 
-int 
+int
 RaisePendingPipeEvents(mctx_t mctx, int epid, int pipeid);
 
-int 
+int
 PipeClose(mctx_t mctx, int pipeid);
 
 #endif /* MTCP_PIPE_H */

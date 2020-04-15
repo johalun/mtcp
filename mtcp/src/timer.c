@@ -27,13 +27,13 @@ InitRTOHashstore()
 
 	for (i = 0; i < RTO_HASH; i++)
 		TAILQ_INIT(&hs->rto_list[i]);
-		
+
 	TAILQ_INIT(&hs->rto_list[RTO_HASH]);
 
 	return hs;
 }
 /*----------------------------------------------------------------------------*/
-inline void 
+inline void
 AddtoRTOList(mtcp_manager_t mtcp, tcp_stream *cur_stream)
 {
 	if (!mtcp->rto_list_cnt) {
@@ -55,33 +55,33 @@ AddtoRTOList(mtcp_manager_t mtcp, tcp_stream *cur_stream)
 		if (diff < RTO_HASH) {
 			int offset= (diff + mtcp->rto_store->rto_now_idx) % RTO_HASH;
 			cur_stream->on_rto_idx = offset;
-			TAILQ_INSERT_TAIL(&(mtcp->rto_store->rto_list[offset]), 
+			TAILQ_INSERT_TAIL(&(mtcp->rto_store->rto_list[offset]),
 					cur_stream, sndvar->timer_link);
 		} else {
 			cur_stream->on_rto_idx = RTO_HASH;
-			TAILQ_INSERT_TAIL(&(mtcp->rto_store->rto_list[RTO_HASH]), 
+			TAILQ_INSERT_TAIL(&(mtcp->rto_store->rto_list[RTO_HASH]),
 					cur_stream, sndvar->timer_link);
 		}
 		mtcp->rto_list_cnt++;
 	}
 }
 /*----------------------------------------------------------------------------*/
-inline void 
+inline void
 RemoveFromRTOList(mtcp_manager_t mtcp, tcp_stream *cur_stream)
 {
 	if (cur_stream->on_rto_idx < 0) {
 //		assert(0);
 		return;
 	}
-	
-	TAILQ_REMOVE(&mtcp->rto_store->rto_list[cur_stream->on_rto_idx], 
+
+	TAILQ_REMOVE(&mtcp->rto_store->rto_list[cur_stream->on_rto_idx],
 			cur_stream, sndvar->timer_link);
 	cur_stream->on_rto_idx = -1;
 
 	mtcp->rto_list_cnt--;
 }
 /*----------------------------------------------------------------------------*/
-inline void 
+inline void
 AddtoTimewaitList(mtcp_manager_t mtcp, tcp_stream *cur_stream, uint32_t cur_ts)
 {
 	cur_stream->rcvvar->ts_tw_expire = cur_ts + CONFIG.tcp_timewait;
@@ -89,7 +89,7 @@ AddtoTimewaitList(mtcp_manager_t mtcp, tcp_stream *cur_stream, uint32_t cur_ts)
 	if (cur_stream->on_timewait_list) {
 		// Update list in sorted way by ts_tw_expire
 		TAILQ_REMOVE(&mtcp->timewait_list, cur_stream, sndvar->timer_link);
-		TAILQ_INSERT_TAIL(&mtcp->timewait_list, cur_stream, sndvar->timer_link);	
+		TAILQ_INSERT_TAIL(&mtcp->timewait_list, cur_stream, sndvar->timer_link);
 	} else {
 		if (cur_stream->on_rto_idx >= 0) {
 			TRACE_DBG("Stream %u: cannot be in both "
@@ -107,20 +107,20 @@ AddtoTimewaitList(mtcp_manager_t mtcp, tcp_stream *cur_stream, uint32_t cur_ts)
 	}
 }
 /*----------------------------------------------------------------------------*/
-inline void 
+inline void
 RemoveFromTimewaitList(mtcp_manager_t mtcp, tcp_stream *cur_stream)
 {
 	if (!cur_stream->on_timewait_list) {
 		assert(0);
 		return;
 	}
-	
+
 	TAILQ_REMOVE(&mtcp->timewait_list, cur_stream, sndvar->timer_link);
 	cur_stream->on_timewait_list = FALSE;
 	mtcp->timewait_list_cnt--;
 }
 /*----------------------------------------------------------------------------*/
-inline void 
+inline void
 AddtoTimeoutList(mtcp_manager_t mtcp, tcp_stream *cur_stream)
 {
 	if (cur_stream->on_timeout_list) {
@@ -133,7 +133,7 @@ AddtoTimeoutList(mtcp_manager_t mtcp, tcp_stream *cur_stream)
 	mtcp->timeout_list_cnt++;
 }
 /*----------------------------------------------------------------------------*/
-inline void 
+inline void
 RemoveFromTimeoutList(mtcp_manager_t mtcp, tcp_stream *cur_stream)
 {
 	if (cur_stream->on_timeout_list) {
@@ -143,7 +143,7 @@ RemoveFromTimeoutList(mtcp_manager_t mtcp, tcp_stream *cur_stream)
 	}
 }
 /*----------------------------------------------------------------------------*/
-inline void 
+inline void
 UpdateTimeoutList(mtcp_manager_t mtcp, tcp_stream *cur_stream)
 {
 	if (cur_stream->on_timeout_list) {
@@ -153,7 +153,7 @@ UpdateTimeoutList(mtcp_manager_t mtcp, tcp_stream *cur_stream)
 }
 /*----------------------------------------------------------------------------*/
 inline void
-UpdateRetransmissionTimer(mtcp_manager_t mtcp, 
+UpdateRetransmissionTimer(mtcp_manager_t mtcp,
 		tcp_stream *cur_stream, uint32_t cur_ts)
 {
 	/* Update the retransmission timer */
@@ -174,25 +174,25 @@ UpdateRetransmissionTimer(mtcp_manager_t mtcp,
 
 	} else {
 		/* all packets are acked */
-		TRACE_RTO("All packets are acked. snd_una: %u, snd_nxt: %u\n", 
+		TRACE_RTO("All packets are acked. snd_una: %u, snd_nxt: %u\n",
 				cur_stream->sndvar->snd_una, cur_stream->snd_nxt);
 	}
 }
 /*----------------------------------------------------------------------------*/
-int 
+int
 HandleRTO(mtcp_manager_t mtcp, uint32_t cur_ts, tcp_stream *cur_stream)
 {
 	uint8_t backoff;
 
-	TRACE_RTO("Stream %d Timeout! rto: %u (%ums), snd_una: %u, snd_nxt: %u\n", 
-			cur_stream->id, cur_stream->sndvar->rto, TS_TO_MSEC(cur_stream->sndvar->rto), 
+	TRACE_RTO("Stream %d Timeout! rto: %u (%ums), snd_una: %u, snd_nxt: %u\n",
+			cur_stream->id, cur_stream->sndvar->rto, TS_TO_MSEC(cur_stream->sndvar->rto),
 			cur_stream->sndvar->snd_una, cur_stream->snd_nxt);
 	assert(cur_stream->sndvar->rto > 0);
 
 	/* if the stream is ready to be closed, don't handle RTO */
 	if (cur_stream->close_reason != TCP_NOT_CLOSED)
 		return 0;
-	
+
 #if USE_CCP
 	ccp_record_event(mtcp, cur_stream, EVENT_TIMEOUT, 0);
 #endif
@@ -216,7 +216,7 @@ HandleRTO(mtcp_manager_t mtcp, uint32_t cur_ts, tcp_stream *cur_stream)
 				DestroyTCPStream(mtcp, cur_stream);
 			}
 		}
-		
+
 		return ERROR;
 	}
 	if (cur_stream->sndvar->nrtx > cur_stream->sndvar->max_nrtx) {
@@ -229,11 +229,11 @@ HandleRTO(mtcp_manager_t mtcp, uint32_t cur_ts, tcp_stream *cur_stream)
 		backoff = MIN(cur_stream->sndvar->nrtx, TCP_MAX_BACKOFF);
 
 		rto_prev = cur_stream->sndvar->rto;
-		cur_stream->sndvar->rto = ((cur_stream->rcvvar->srtt >> 3) + 
+		cur_stream->sndvar->rto = ((cur_stream->rcvvar->srtt >> 3) +
 				cur_stream->rcvvar->rttvar) << backoff;
 		if (cur_stream->sndvar->rto <= 0) {
-			TRACE_RTO("Stream %d current rto: %u, prev: %u, state: %s\n", 
-					cur_stream->id, cur_stream->sndvar->rto, rto_prev, 
+			TRACE_RTO("Stream %d current rto: %u, prev: %u, state: %s\n",
+					cur_stream->id, cur_stream->sndvar->rto, rto_prev,
 					TCPStateToString(cur_stream));
 			cur_stream->sndvar->rto = rto_prev;
 		}
@@ -251,7 +251,7 @@ HandleRTO(mtcp_manager_t mtcp, uint32_t cur_ts, tcp_stream *cur_stream)
 		cur_stream->sndvar->ssthresh = cur_stream->sndvar->mss * 2;
 	}
 	cur_stream->sndvar->cwnd = cur_stream->sndvar->mss;
-	TRACE_CONG("Stream %d Timeout. cwnd: %u, ssthresh: %u\n", 
+	TRACE_CONG("Stream %d Timeout. cwnd: %u, ssthresh: %u\n",
 			cur_stream->id, cur_stream->sndvar->cwnd, cur_stream->sndvar->ssthresh);
 
 #if RTM_STAT
@@ -266,7 +266,7 @@ HandleRTO(mtcp_manager_t mtcp, uint32_t cur_ts, tcp_stream *cur_stream)
 		if (cur_stream->sndvar->nrtx > TCP_MAX_SYN_RETRY) {
 			cur_stream->state = TCP_ST_CLOSED;
 			cur_stream->close_reason = TCP_CONN_FAIL;
-			TRACE_RTO("Stream %d: SYN retries exceed maximum retries.\n", 
+			TRACE_RTO("Stream %d: SYN retries exceed maximum retries.\n",
 					cur_stream->id);
 			if (cur_stream->socket) {
 				RaiseErrorEvent(mtcp, cur_stream);
@@ -276,42 +276,42 @@ HandleRTO(mtcp_manager_t mtcp, uint32_t cur_ts, tcp_stream *cur_stream)
 
 			return ERROR;
 		}
-		TRACE_RTO("Stream %d Retransmit SYN. snd_nxt: %u, snd_una: %u\n", 
+		TRACE_RTO("Stream %d Retransmit SYN. snd_nxt: %u, snd_una: %u\n",
 				cur_stream->id, cur_stream->snd_nxt, cur_stream->sndvar->snd_una);
 
 	} else if (cur_stream->state == TCP_ST_SYN_RCVD) {
 		/* SYN/ACK lost */
-		TRACE_RTO("Stream %d: Retransmit SYN/ACK. snd_nxt: %u, snd_una: %u\n", 
+		TRACE_RTO("Stream %d: Retransmit SYN/ACK. snd_nxt: %u, snd_una: %u\n",
 				cur_stream->id, cur_stream->snd_nxt, cur_stream->sndvar->snd_una);
 
 	} else if (cur_stream->state == TCP_ST_ESTABLISHED) {
 		/* Data lost */
-		TRACE_RTO("Stream %d: Retransmit data. snd_nxt: %u, snd_una: %u\n", 
+		TRACE_RTO("Stream %d: Retransmit data. snd_nxt: %u, snd_una: %u\n",
 				cur_stream->id, cur_stream->snd_nxt, cur_stream->sndvar->snd_una);
 
 	} else if (cur_stream->state == TCP_ST_CLOSE_WAIT) {
 		/* Data lost */
-		TRACE_RTO("Stream %d: Retransmit data. snd_nxt: %u, snd_una: %u\n", 
+		TRACE_RTO("Stream %d: Retransmit data. snd_nxt: %u, snd_una: %u\n",
 				cur_stream->id, cur_stream->snd_nxt, cur_stream->sndvar->snd_una);
 
 	} else if (cur_stream->state == TCP_ST_LAST_ACK) {
 		/* FIN/ACK lost */
 		TRACE_RTO("Stream %d: Retransmit FIN/ACK. "
-				"snd_nxt: %u, snd_una: %u\n", 
+				"snd_nxt: %u, snd_una: %u\n",
 				cur_stream->id, cur_stream->snd_nxt, cur_stream->sndvar->snd_una);
 
 	} else if (cur_stream->state == TCP_ST_FIN_WAIT_1) {
 		/* FIN lost */
-		TRACE_RTO("Stream %d: Retransmit FIN. snd_nxt: %u, snd_una: %u\n", 
+		TRACE_RTO("Stream %d: Retransmit FIN. snd_nxt: %u, snd_una: %u\n",
 				cur_stream->id, cur_stream->snd_nxt, cur_stream->sndvar->snd_una);
 	} else if (cur_stream->state == TCP_ST_CLOSING) {
-		TRACE_RTO("Stream %d: Retransmit ACK. snd_nxt: %u, snd_una: %u\n", 
+		TRACE_RTO("Stream %d: Retransmit ACK. snd_nxt: %u, snd_una: %u\n",
 				cur_stream->id, cur_stream->snd_nxt, cur_stream->sndvar->snd_una);
 		//TRACE_DBG("Stream %d: Retransmitting at CLOSING\n", cur_stream->id);
 
 	} else {
-		TRACE_ERROR("Stream %d: not implemented state! state: %s, rto: %u\n", 
-				cur_stream->id, 
+		TRACE_ERROR("Stream %d: not implemented state! state: %s, rto: %u\n",
+				cur_stream->id,
 				TCPStateToString(cur_stream), cur_stream->sndvar->rto);
 		assert(0);
 		return ERROR;
@@ -324,13 +324,13 @@ HandleRTO(mtcp_manager_t mtcp, uint32_t cur_ts, tcp_stream *cur_stream)
 	}
 
 	cur_stream->snd_nxt = cur_stream->sndvar->snd_una;
-	if (cur_stream->state == TCP_ST_ESTABLISHED || 
+	if (cur_stream->state == TCP_ST_ESTABLISHED ||
 			cur_stream->state == TCP_ST_CLOSE_WAIT) {
 		/* retransmit data at ESTABLISHED state */
 		AddtoSendList(mtcp, cur_stream);
 
-	} else if (cur_stream->state == TCP_ST_FIN_WAIT_1 || 
-			cur_stream->state == TCP_ST_CLOSING || 
+	} else if (cur_stream->state == TCP_ST_FIN_WAIT_1 ||
+			cur_stream->state == TCP_ST_CLOSING ||
 			cur_stream->state == TCP_ST_LAST_ACK) {
 
 		if (cur_stream->sndvar->fss == 0) {
@@ -357,7 +357,7 @@ HandleRTO(mtcp_manager_t mtcp, uint32_t cur_ts, tcp_stream *cur_stream)
 	return 0;
 }
 /*----------------------------------------------------------------------------*/
-static inline void 
+static inline void
 RearrangeRTOStore(mtcp_manager_t mtcp) {
 	tcp_stream *walk, *next;
 	struct rto_head* rto_list = &mtcp->rto_store->rto_list[RTO_HASH];
@@ -377,7 +377,7 @@ RearrangeRTOStore(mtcp_manager_t mtcp) {
 					walk, sndvar->timer_link);
 		}
 		cnt++;
-	}	
+	}
 }
 /*----------------------------------------------------------------------------*/
 void
@@ -386,7 +386,7 @@ CheckRtmTimeout(mtcp_manager_t mtcp, uint32_t cur_ts, int thresh)
 	tcp_stream *walk, *next;
 	struct rto_head* rto_list;
 	int cnt;
-	
+
 	if (!mtcp->rto_list_cnt) {
 		return;
 	}
@@ -394,14 +394,14 @@ CheckRtmTimeout(mtcp_manager_t mtcp, uint32_t cur_ts, int thresh)
 	STAT_COUNT(mtcp->runstat.rounds_rtocheck);
 
 	cnt = 0;
-			
+
 	while (1) {
-		
+
 		rto_list = &mtcp->rto_store->rto_list[mtcp->rto_store->rto_now_idx];
 		if ((int32_t)(cur_ts - mtcp->rto_store->rto_now_ts) < 0) {
 			break;
 		}
-		
+
 		for (walk = TAILQ_FIRST(rto_list);
 				walk != NULL; walk = next) {
 			if (++cnt > thresh) {
@@ -409,7 +409,7 @@ CheckRtmTimeout(mtcp_manager_t mtcp, uint32_t cur_ts, int thresh)
 			}
 			next = TAILQ_NEXT(walk, sndvar->timer_link);
 
-			TRACE_LOOP("Inside rto list. cnt: %u, stream: %d\n", 
+			TRACE_LOOP("Inside rto list. cnt: %u, stream: %d\n",
 					cnt, walk->s_id);
 
 			if (walk->on_rto_idx >= 0) {
@@ -440,7 +440,7 @@ CheckRtmTimeout(mtcp_manager_t mtcp, uint32_t cur_ts, int thresh)
 	TRACE_ROUND("Checking retransmission timeout. cnt: %d\n", cnt);
 }
 /*----------------------------------------------------------------------------*/
-void 
+void
 CheckTimewaitExpire(mtcp_manager_t mtcp, uint32_t cur_ts, int thresh)
 {
 	tcp_stream *walk, *next;
@@ -450,19 +450,19 @@ CheckTimewaitExpire(mtcp_manager_t mtcp, uint32_t cur_ts, int thresh)
 
 	cnt = 0;
 
-	for (walk = TAILQ_FIRST(&mtcp->timewait_list); 
+	for (walk = TAILQ_FIRST(&mtcp->timewait_list);
 				walk != NULL; walk = next) {
 		if (++cnt > thresh)
 			break;
 		next = TAILQ_NEXT(walk, sndvar->timer_link);
-		
-		TRACE_LOOP("Inside timewait list. cnt: %u, stream: %d\n", 
+
+		TRACE_LOOP("Inside timewait list. cnt: %u, stream: %d\n",
 				cnt, walk->s_id);
-		
+
 		if (walk->on_timewait_list) {
 			if ((int32_t)(cur_ts - walk->rcvvar->ts_tw_expire) >= 0) {
 				if (!walk->sndvar->on_control_list) {
-					
+
 					TAILQ_REMOVE(&mtcp->timewait_list, walk, sndvar->timer_link);
 					walk->on_timewait_list = FALSE;
 					mtcp->timewait_list_cnt--;
@@ -486,7 +486,7 @@ CheckTimewaitExpire(mtcp_manager_t mtcp, uint32_t cur_ts, int thresh)
 	TRACE_ROUND("Checking timewait timeout. cnt: %d\n", cnt);
 }
 /*----------------------------------------------------------------------------*/
-void 
+void
 CheckConnectionTimeout(mtcp_manager_t mtcp, uint32_t cur_ts, int thresh)
 {
 	tcp_stream *walk, *next;
@@ -501,7 +501,7 @@ CheckConnectionTimeout(mtcp_manager_t mtcp, uint32_t cur_ts, int thresh)
 			break;
 		next = TAILQ_NEXT(walk, sndvar->timeout_link);
 
-		if ((int32_t)(cur_ts - walk->last_active_ts) >= 
+		if ((int32_t)(cur_ts - walk->last_active_ts) >=
 				CONFIG.tcp_timeout) {
 
 			walk->on_timeout_list = FALSE;

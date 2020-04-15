@@ -25,16 +25,16 @@ typedef struct mem_pool
 	int mp_total_chunks;       /* number of total free chunks */
 	int mp_chunk_size;        /* chunk size in bytes */
 	int mp_type;
-	
+
 } mem_pool;
 /*----------------------------------------------------------------------------*/
-mem_pool * 
+mem_pool *
 MPCreate(int chunk_size, size_t total_size)
 {
 	mem_pool_t mp;
 
 	if (chunk_size < sizeof(mem_chunk)) {
-		TRACE_ERROR("The chunk size should be larger than %lu. current: %d\n", 
+		TRACE_ERROR("The chunk size should be larger than %lu. current: %d\n",
 				sizeof(mem_chunk), chunk_size);
 		return NULL;
 	}
@@ -66,7 +66,7 @@ MPCreate(int chunk_size, size_t total_size)
 
 	/* try mlock only for superuser */
 	if (geteuid() == 0) {
-		if (mlock(mp->mp_startptr, total_size) < 0) 
+		if (mlock(mp->mp_startptr, total_size) < 0)
 			TRACE_ERROR("m_lock failed, size=%ld\n", total_size);
 	}
 
@@ -81,11 +81,11 @@ void *
 MPAllocateChunk(mem_pool_t mp)
 {
 	mem_chunk_t p = mp->mp_freeptr;
-	
-	if (mp->mp_free_chunks == 0) 
+
+	if (mp->mp_free_chunks == 0)
 		return (NULL);
 	assert(p->mc_free_chunks > 0 && p->mc_free_chunks <= p->mc_free_chunks);
-	
+
 	p->mc_free_chunks--;
 	mp->mp_free_chunks--;
 	if (p->mc_free_chunks) {
@@ -106,12 +106,12 @@ MPFreeChunk(mem_pool_t mp, void *p)
 {
 	mem_chunk_t mcp = (mem_chunk_t)p;
 
-	//	assert((u_char*)p >= mp->mp_startptr && 
+	//	assert((u_char*)p >= mp->mp_startptr &&
 	//		   (u_char *)p < mp->mp_startptr + mp->mp_total_size);
 	assert(((u_char *)p - mp->mp_startptr) % mp->mp_chunk_size == 0);
 	//	assert(*((u_char *)p + (mp->mp_chunk_size-1)) == 'a');
 	//	*((u_char *)p + (mp->mp_chunk_size-1)) = 'f';
-	
+
 	mcp->mc_free_chunks = 1;
 	mcp->mc_next = mp->mp_freeptr;
 	mp->mp_freeptr = mcp;
@@ -131,7 +131,7 @@ MPGetFreeChunks(mem_pool_t mp)
 	return mp->mp_free_chunks;
 }
 /*----------------------------------------------------------------------------*/
-uint32_t 
+uint32_t
 MPIsDanger(mem_pool_t mp)
 {
 #define DANGER_THRESHOLD 0.95
@@ -162,7 +162,7 @@ MPCreate(char *name, int chunk_size, size_t total_size)
 {
 	struct rte_mempool *mp;
 	size_t sz, items;
-	
+
 	items = total_size/chunk_size;
 	sz = RTE_ALIGN_CEIL(chunk_size, RTE_CACHE_LINE_SIZE);
 	mp = rte_mempool_create(name, items, sz, 0, 0, NULL,

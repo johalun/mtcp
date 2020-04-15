@@ -33,8 +33,8 @@ struct hashtable {
 };
 
 /*functions for hashtable*/
-struct hashtable *CreateHashtable(unsigned int (*hashfn) (const void *), 
-				  int (*eqfn) (const void *, 
+struct hashtable *CreateHashtable(unsigned int (*hashfn) (const void *),
+				  int (*eqfn) (const void *,
 					       const void *),
 				  int bins);
 void DestroyHashtable(struct hashtable *ht);

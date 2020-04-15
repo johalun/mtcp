@@ -128,14 +128,14 @@ onvm_init_handle(struct mtcp_thread_context *ctxt)
 			    "Can't allocate memory\n");
 		exit(EXIT_FAILURE);
 	}
-	
+
 	sprintf(mempool_name, "mbuf_pool-%d", ctxt->cpu);
 	dpc = (struct dpdk_private_context *)ctxt->io_private_context;
 	dpc->pktmbuf_pool = pktmbuf_pool;
 
 	/* Complete onvm handshake */
 	onvm_nflib_nf_ready(CONFIG.nf_local_ctx->nf);
-	
+
 	/* Initialize onvm rings*/
 	nf = CONFIG.nf_local_ctx->nf;
 	rx_ring = nf->rx_q;
@@ -170,16 +170,16 @@ int
 onvm_link_devices(struct mtcp_thread_context *ctxt)
 {
 	/* linking takes place during mtcp_init() */
-	
+
 	return 0;
 }
 /*----------------------------------------------------------------------------*/
 void
 onvm_release_pkt(struct mtcp_thread_context *ctxt, int ifidx, unsigned char *pkt_data, int len)
 {
-	/* 
+	/*
 	 * do nothing over here - memory reclamation
-	 * will take place in onvm_recv_pkts 
+	 * will take place in onvm_recv_pkts
 	 */
 }
 /*----------------------------------------------------------------------------*/
@@ -193,11 +193,11 @@ onvm_send_pkts(struct mtcp_thread_context *ctxt, int nif)
 	struct onvm_ft_ipv4_5tuple key;
         int ifidx;
 
-        ifidx = nif;	
+        ifidx = nif;
 	dpc = (struct dpdk_private_context *)ctxt->io_private_context;
 	mtcp = ctxt->mtcp_manager;
 	ret = 0;
-	
+
 	/* if there are packets in the queue... flush them out to the wire */
 	if (dpc->wmbufs[nif].len >/*= MAX_PKT_BURST*/ 0) {
 		struct rte_mbuf **pkts;
@@ -219,9 +219,9 @@ onvm_send_pkts(struct mtcp_thread_context *ctxt, int nif)
 				ss.rmiss = stats.imissed;
 				ss.rerr = stats.ierrors;
 				ss.terr = stats.oerrors;
-			} else 
+			} else
 				ss.rmiss = ss.rerr = ss.terr = 0;
-			
+
 			ss.tx_pkts = mtcp->nstat.tx_packets[ifidx];
 			ss.tx_bytes = mtcp->nstat.tx_bytes[ifidx];
 			ss.rx_pkts = mtcp->nstat.rx_packets[ifidx];
@@ -236,7 +236,7 @@ onvm_send_pkts(struct mtcp_thread_context *ctxt, int nif)
 		}
 #endif /* !ENABLE_STATS_IOCTL */
 #endif
-		
+
 		for (i = 0; i < cnt; i++) {
 			meta = onvm_get_pkt_meta(pkts[i]);
 			if (CONFIG.onvm_dest == (uint16_t) -1) {
@@ -255,7 +255,7 @@ onvm_send_pkts(struct mtcp_thread_context *ctxt, int nif)
 			nf->stats.tx_drop += cnt;
 		}
 		nf->stats.tx += cnt;
-		
+
 		/* time to allocate fresh mbufs for the queue */
 		for (i = 0; i < dpc->wmbufs[nif].len; i++) {
 			dpc->wmbufs[nif].m_table[i] = rte_pktmbuf_alloc(pktmbuf_pool);
@@ -269,7 +269,7 @@ onvm_send_pkts(struct mtcp_thread_context *ctxt, int nif)
 		/* reset the len of mbufs var after flushing of packets */
 		dpc->wmbufs[nif].len = 0;
 	}
-	
+
 	return ret;
 }
 /*----------------------------------------------------------------------------*/
@@ -284,14 +284,14 @@ onvm_get_wptr(struct mtcp_thread_context *ctxt, int nif, uint16_t pktsize)
 
 	dpc = (struct dpdk_private_context *) ctxt->io_private_context;
 	mtcp = ctxt->mtcp_manager;
-	
+
 	/* sanity check */
 	if (unlikely(dpc->wmbufs[nif].len == MAX_PKT_BURST))
 		return NULL;
 
 	len_of_mbuf = dpc->wmbufs[nif].len;
 	m = dpc->wmbufs[nif].m_table[len_of_mbuf];
-	
+
 	/* retrieve the right write offset */
 	ptr = (void *)rte_pktmbuf_mtod(m, struct ether_hdr *);
 	m->pkt_len = m->data_len = pktsize;
@@ -301,10 +301,10 @@ onvm_get_wptr(struct mtcp_thread_context *ctxt, int nif, uint16_t pktsize)
 #ifdef NETSTAT
 	mtcp->nstat.tx_bytes[nif] += pktsize + 24;
 #endif
-	
+
 	/* increment the len_of_mbuf var */
 	dpc->wmbufs[nif].len = len_of_mbuf + 1;
-	
+
 	return (uint8_t *)ptr;
 }
 /*----------------------------------------------------------------------------*/
@@ -325,7 +325,7 @@ onvm_recv_pkts(struct mtcp_thread_context *ctxt, int ifidx)
 {
 	struct dpdk_private_context *dpc;
 	int ret;
-	void *pkts[MAX_PKT_BURST];	
+	void *pkts[MAX_PKT_BURST];
 	int i;
 
 	dpc = (struct dpdk_private_context *) ctxt->io_private_context;
@@ -336,12 +336,12 @@ onvm_recv_pkts(struct mtcp_thread_context *ctxt, int ifidx)
 	}
 
 	ret = rte_ring_dequeue_burst(rx_ring, pkts, MAX_PKT_BURST, NULL);
-	
+
 	for (i = 0; i < ret; i++) {
 		dpc->pkts_burst[i] = (struct rte_mbuf*)pkts[i];
 	}
-	
-#ifdef RX_IDLE_ENABLE	
+
+#ifdef RX_IDLE_ENABLE
 	dpc->rx_idle = (likely(ret != 0)) ? 0 : dpc->rx_idle + 1;
 #endif
 	dpc->rmbufs[ifidx].len = ret;
@@ -356,7 +356,7 @@ onvm_get_rptr(struct mtcp_thread_context *ctxt, int ifidx, int index, uint16_t *
 	struct rte_mbuf *m;
 	uint8_t *pktbuf;
 
-	dpc = (struct dpdk_private_context *) ctxt->io_private_context;	
+	dpc = (struct dpdk_private_context *) ctxt->io_private_context;
 
 	m = dpc->pkts_burst[index];
 	//rte_prefetch0(rte_pktmbuf_mtod(m, void *));
@@ -385,7 +385,7 @@ onvm_select(struct mtcp_thread_context *ctxt)
 {
 #ifdef RX_IDLE_ENABLE
 	struct dpdk_private_context *dpc;
-	
+
 	dpc = (struct dpdk_private_context *) ctxt->io_private_context;
 	if (dpc->rx_idle > RX_IDLE_THRESH) {
 		dpc->rx_idle = 0;
@@ -401,7 +401,7 @@ onvm_destroy_handle(struct mtcp_thread_context *ctxt)
 	struct dpdk_private_context *dpc;
 	int i;
 
-	dpc = (struct dpdk_private_context *) ctxt->io_private_context;	
+	dpc = (struct dpdk_private_context *) ctxt->io_private_context;
 
 	/* free wmbufs */
 	for (i = 0; i < num_devices_attached; i++)
@@ -425,9 +425,9 @@ onvm_load_module(void)
 	pktmbuf_pool=rte_mempool_lookup(PKTMBUF_POOL_NAME);
 	if (pktmbuf_pool == NULL){
 		rte_exit(EXIT_FAILURE, "Cannot init mbuf pool, errno: %d\n",
-			 rte_errno);	
+			 rte_errno);
 	}
-	
+
 	for (i = 0; i < num_devices_attached; ++i) {
 		/* get portid form the index of attached devices */
 		portid = devices_attached[i];
